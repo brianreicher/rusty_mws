@@ -1,2 +1,2 @@
 # rusty_mws
-A Python-wrapped Rust-based implementation of Mutex Watershed segmentation, built using MongoDB.
+A package for a Rust-based implementation of Mutex Watershed image segmentation, built using MongoDB.
