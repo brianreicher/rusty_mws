@@ -4,19 +4,45 @@ import time
 
 import numpy as np
 import mwatershed as mws
-import networkx as nx
-from funlib.persistence import open_ds, Array, graphs
+from funlib.persistence import open_ds, graphs
 
 
 logger: logging.Logger = logging.getLogger(__name__)
 
-def global_mutex_watershed_on_super_voxels(fragments_file:str,
+def global_mutex_watershed_on_super_voxels(sample_name:str,
+                                        fragments_file:str,
                                         fragments_dataset,
-                                        sample_name:str,
                                         merge_function:str="mwatershed",
                                         adj_bias:float=7., 
                                         lr_bias:float=-1.2) -> bool:
+    """Performs global agglomeration on the MWS fragments in file, reading and storing new segment IDs in a LUT.
     
+    Args:
+        sample_name (``str``):
+                A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name
+        
+        fragments_file (``str``):
+                Path (relative or absolute) to the zarr file containing fragments.
+
+        fragments_dataset (``str``):
+            The name of the fragments dataset to read from.
+        
+        merge_function (``str``):
+            Name of the segmentation algorithm used to denote in the MongoDB edge collection.
+
+        adj_bias (``float``):
+            Amount to bias adjacent pixel weights when computing segmentation from the stored graph.
+
+        lr_bias (``float``):
+            Amount to bias long-range pixel weights when computing segmentation from the stored graph.
+
+            
+    Returns:
+        ``bool``:
+            Returns ``true`` if all Daisy tasks complete successfully.
+    """
+
+
     db_host: str = "mongodb://localhost:27017"
     db_name: str = "seg"
     print("Reading graph from DB ", db_name)
@@ -69,7 +95,6 @@ def global_mutex_watershed_on_super_voxels(fragments_file:str,
 
 
     segment(
-        nodes=nodes,
         edges=edges,
         adj_scores=adj_scores,
         lr_scores=lr_scores,
@@ -82,7 +107,31 @@ def global_mutex_watershed_on_super_voxels(fragments_file:str,
     print("Created and stored lookup tables in %.3fs" % (time.time() - start))
     return True
 
-def segment(nodes, edges, adj_scores, lr_scores, merge_function, out_dir, adj_bias, lr_bias) -> None:
+def segment(edges:np.ndaray, adj_scores:np.ndarray, lr_scores:np.ndarray, merge_function:str, out_dir:str, adj_bias:float, lr_bias:float) -> None:
+    """Segmentation function used to compute and store segment IDs in a LUT.
+
+    Args:
+        edges (``np.ndarray``):
+            An array of edges, read from the MongoDB graph.
+
+        adj_scores (``np.ndarray``):
+            An array of adjacent agglomeration scores, read from the MongoDB graph.
+        
+        lr_scores (``np.ndarray``):
+            An array of long-range agglomeration scores, reaad from the MongoDB graph.
+
+        merge_function (``str``):
+            Name of the segmentation algorithm used to denote in the MongoDB edge collection.
+        
+        out_dir (``str``):
+            Directory in which to store the .npz LUT.
+        
+        adj_bias (``float``):
+            Value which to bias adjacent pixel agglomeration weights by.
+
+        lr_bias (``float``):
+            Value which to bias long-range pixel agglomeration weights by.
+    """
 
     edges: list[tuple] = [
         (adj + adj_bias, u, v)
@@ -106,7 +155,7 @@ def segment(nodes, edges, adj_scores, lr_scores, merge_function, out_dir, adj_bi
     print("%.3fs" % (time.time() - start))
 
     start = time.time()
-    lut = np.array([inputs, outputs])
+    lut: np.ndarray = np.array([inputs, outputs])
 
     print("%.3fs" % (time.time() - start))
 
