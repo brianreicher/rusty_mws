@@ -1,0 +1,6 @@
+git+https://github.com/pattonw/mwatershed
+git+https://github.com/funkelab/funlib.geometry@976dc2c#egg=funlib.geometry
+git+https://github.com/funkey/gunpowder@68dffe1#egg=gunpowder
+git+https://github.com/funkelab/funlib.persistence.git
+git+https://github.com/trivoldus28/daisy@b7678eb#egg=daisy
+git+https://github.com/funkelab/funlib.segment.git
