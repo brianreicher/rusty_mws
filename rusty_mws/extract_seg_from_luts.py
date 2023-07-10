@@ -12,9 +12,31 @@ logging.getLogger().setLevel(logging.INFO)
 def extract_segmentation(
         fragments_file:str,
         fragments_dataset:str,
-        num_workers:int=20,
+        nworkers:int=20,
         merge_function:str="mwatershed",
-        n_chunk_write:int=1):
+        n_chunk_write:int=1) -> int:
+    """Extracts and relabels fragments to segment IDs from the saved LUT.
+
+    Args:
+        fragments_file (``str``):
+            Path (relative or absolute) to the zarr file where fragments are stored.
+
+        fragments_dataset (``str``):
+            The name of the fragments dataset to read from in the fragments file.
+
+        nworkers (``integer``):
+            Number of distributed workers to run the Daisy parallel task with.
+
+        merge_function (``str``):
+            Name of the segmentation algorithm used to denote in the MongoDB edge collection.
+        
+        n_chunk_write (``integer``):
+            Number of chunks to write for each Daisy block.
+    
+    Returns:
+        ``integer``:
+            The number of unique segment IDs in the final segmentation.
+    """
         
     lut_dir = os.path.join(fragments_file,'luts_full')
 
@@ -75,7 +97,7 @@ def extract_segmentation(
             fragments,
             lut),
         fit='shrink',
-        num_workers=num_workers)
+        num_workers=nworkers)
 
     done: bool = daisy.run_blockwise(tasks=[task])
 
@@ -86,7 +108,7 @@ def extract_segmentation(
     return num_segments
 
 def segment_in_block(
-        block,
+        block:daisy.Block,
         segmentation,
         fragments,
         lut):
