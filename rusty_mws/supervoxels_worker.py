@@ -9,22 +9,62 @@ import pymongo
 import daisy
 from funlib.geometry import Coordinate
 from funlib.persistence import open_ds, Array, graphs
-from model import *
+from .rusty_segment_mws import neighborhood
+
 
 logger: logging.Logger = logging.getLogger(__name__)
 
 
 def blockwise_generate_super_voxel_edges_task(sample_name:str, 
-                                                affs_file:str,
-                                                affs_dataset,
-                                                fragments_file:str,
-                                                fragments_dataset:str,
-                                                context:Coordinate,
-                                                nworkers:int=20,
-                                                merge_function:str="mwatershed",
-                                                lr_bias_ratio:float=-.175,
-                                                threshold:float=0.5) -> bool:
+                                            affs_file:str,
+                                            affs_dataset,
+                                            fragments_file:str,
+                                            fragments_dataset:str,
+                                            context:Coordinate,
+                                            nworkers:int=20,
+                                            merge_function:str="mwatershed",
+                                            lr_bias_ratio:float=-.175,
+                                            neighborhood_length: int = 8,) -> bool:
+    """Generates supervoxel edges and stores weighted edges in the MongoDB graph.
 
+    Args:
+        sample_name (``str``):
+            A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name
+        
+        affs_file (``str``):
+            Path (relative or absolute) to the zarr file containing predicted affinities to generate fragments for.
+
+        affs_dataset (``str``):
+            The name of the affinities dataset in the affs_file to read from.
+
+        fragments_file (``str``):
+            Path (relative or absolute) to the zarr file containing fragments.
+
+        fragments_dataset (``str``):
+            The name of the fragments dataset to read from.
+        
+        context (``daisy.Coordinate``):
+            A coordinate object (3-dimensional) denoting how much contextual space to grow for the total volume ROI.
+
+        nworkers (``integer``):
+            Number of distributed workers to run the Daisy parallel task with.
+        
+        merge_function (``str``):
+            Name of the segmentation algorithm used to denote in the MongoDB edge collection.
+
+        lr_bias_ratio (``float``):
+            Ratio at which to tweak the lr shift in offsets.
+        
+        neighborhood_length (``integer``):
+            Number of neighborhood offsets to use, default is 8.
+        
+   
+    Returns:
+        ``bool``:
+            Returns ``true`` if all Daisy tasks complete successfully.
+    """
+
+    
     logging.info("Reading affs and fragments")
     
     affs: Array = open_ds(affs_file, affs_dataset, mode="r")
@@ -97,7 +137,7 @@ def blockwise_generate_super_voxel_edges_task(sample_name:str,
             # logger.debug("fragments num: %d", n)
 
             # convert affs to float32 ndarray with values between 0 and 1
-            offsets: list = neighborhood
+            offsets: list[list[int]] = neighborhood[:neighborhood_length]
 
             affs = affs.to_ndarray()
             if affs.dtype == np.uint8:

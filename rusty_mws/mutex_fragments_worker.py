@@ -10,16 +10,10 @@ import mwatershed as mws
 from funlib.geometry import Coordinate
 from funlib.persistence import open_ds, Array, graphs, prepare_ds
 from funlib.segment.arrays import relabel
-import gunpowder as gp
 import pymongo
 
 from .utils import filter_fragments
-import sys
-
-sys.path.append(
-    "/n/groups/htem/users/br128/xray-challenge-entry/setups/lr_mtlsd_refine"
-)
-from model import neighborhood
+from .rusty_segment_mws import neighborhood
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -27,9 +21,9 @@ logger: logging.Logger = logging.getLogger(__name__)
 def blockwise_generate_mutex_fragments_task(
     sample_name: str,
     affs_file: str,
-    affs_dataset,
+    affs_dataset:str,
     fragments_file: str,
-    fragments_dataset,
+    fragments_dataset:str,
     context: Coordinate,
     filter_val: float = 0.60,
     nworkers: int = 10,
@@ -41,8 +35,68 @@ def blockwise_generate_mutex_fragments_task(
     n_chunk_write: int = 2,
     lr_bias_ratio: float = -0.175,
     adjacent_edge_bias: float = -0.4,  # bias towards merging
-    lr_edge_bias: float = -0.7,  # bias heavily towards splitting
-) -> bool:
+    neighborhood_length: int = 8,
+    ) -> bool:
+    """ Generates Mutex Watershed fragments and saves fragment nodes & weights in a graph.
+
+    Args:
+        sample_name (``str``):
+            A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name
+        
+        affs_file (``str``):
+            Path (relative or absolute) to the zarr file containing predicted affinities to generate fragments for.
+
+        affs_dataset (``str``):
+            The name of the affinities dataset in the affs_file to read from.
+
+        fragments_file (``str``):
+            Path (relative or absolute) to the zarr file to write fragments to.
+
+        fragments_dataset (``str``):
+            The name of the fragments dataset to read/write to in the fragments_file.
+
+        context (``daisy.Coordinate``):
+            A coordinate object (3-dimensional) denoting how much contextual space to grow for the total volume ROI.
+
+        filter_val (``float``):
+            The amount for which fragments will be filtered if their average falls below said value.
+
+        nworkers (``integer``):
+            Number of distributed workers to run the Daisy parallel task with.
+
+        mask_file (``str``):
+            Path (relative or absolute) to the zarr file containing an affinity mask.
+
+        mask_dataset (``str``):
+            The name of the mask dataset in the mask_file to read from.
+
+        seeds_file (``str``):
+            Path (relative or absolute) to the zarr file containing seeds.
+
+        seeds_dataset (``str``):
+            The name of the seeds dataset in the seeds file to read from.
+
+        training (``bool``):
+            Training flag to denote wether or not to storge fragment data in MongoDB. When ``false``, used for training-only runs on SLURM clusters.
+
+        n_chunk_write (``integer``):
+            Number of chunks to write for each Daisy block.
+
+        lr_bias_ratio (``float``):
+            Ratio at which to tweak the lr shift in offsets.
+
+        adjacent_edge_bias (``float``):
+            Weight base at which to bias adjacent edges.
+
+        neighborhood_length (``integer``):
+            Number of neighborhood offsets to use, default is 8.
+        
+        Returns:
+            ``bool``:
+                Returns ``true`` if all Daisy tasks complete successfully.
+    """
+
+
     logger.info("Reading affs from %s", affs_file)
     logger.info(f"Experiment name: {sample_name}")
 
@@ -155,7 +209,8 @@ def blockwise_generate_mutex_fragments_task(
         logger.info("block write roi begin: %s", block.write_roi.get_begin())
         logger.info("block write roi shape: %s", block.write_roi.get_shape())
 
-        offsets: list = neighborhood
+        offsets: list[list[int]] = neighborhood[:neighborhood_length]
+
 
         these_affs: Array = affs.intersect(block.read_roi)
         these_affs.materialize()
@@ -194,7 +249,7 @@ def blockwise_generate_mutex_fragments_task(
         shift: np.ndarray = np.array(
             [
                 adjacent_edge_bias if max(offset) <= 1
-                # else lr_edge_bias
+
                 else np.linalg.norm(offset) * lr_bias_ratio
                 for offset in offsets
             ]

@@ -8,10 +8,10 @@ from funlib.segment.arrays import replace_values
 
 logging.getLogger().setLevel(logging.INFO)
 
+
 def extract_segmentation(
-        fragments_file,
-        fragments_dataset,
-        sample_name,
+        fragments_file:str,
+        fragments_dataset:str,
         num_workers:int=20,
         merge_function:str="mwatershed",
         n_chunk_write:int=1):
