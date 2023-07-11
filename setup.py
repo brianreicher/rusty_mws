@@ -1,15 +1,11 @@
-
-import subprocess
 from setuptools import setup
 
-# install Rust 
-# _: int = subprocess.call(["sh", "./install.sh"])
 
 setup(
     name="rusty_mws",
     version="0.1.0",
     description="An optimized Rust-based mutex watershed",
-    long_description=open("README.md").read(),
+    long_description=open(file="README.md").read(),
     author="Brian Kyle Reicher",
     author_email="reicher.b@northeastern.edu",
     classifiers=[
@@ -25,14 +21,14 @@ setup(
     ],
     python_requires=">=3.6",
     install_requires=[
-            "numpy",
-            "pymongo",
-            "scikit-image",
-            "mwatershed @ git+https://github.com/pattonw/mwatershed",
-            "funlib.geometry @ git+https://github.com/funkelab/funlib.geometry",
-            "gunpowder @ git+https://github.com/funkey/gunpowder",
-            "funlib.persistence @ git+https://github.com/funkelab/funlib.persistence.git",
-            "daisy",
-            "funlib.segment @ git+https://github.com/funkelab/funlib.segment.git"
-    ]
+        "numpy",
+        "pymongo",
+        "scikit-image",
+        "mwatershed @ git+https://github.com/pattonw/mwatershed",
+        "funlib.geometry @ git+https://github.com/funkelab/funlib.geometry",
+        "gunpowder @ git+https://github.com/funkey/gunpowder",
+        "funlib.persistence @ git+https://github.com/funkelab/funlib.persistence.git",
+        "daisy",
+        "funlib.segment @ git+https://github.com/funkelab/funlib.segment.git",
+    ],
 )

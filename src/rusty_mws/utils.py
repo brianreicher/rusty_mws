@@ -37,6 +37,7 @@ def filter_fragments(
     replace: np.ndarray = np.zeros_like(filtered_fragments)
     replace_values(fragments_data, filtered_fragments, replace, inplace=True)
 
+
 # neighborhood offset values to read in pipeline parts
 neighborhood: list[list[int]] = [
     [1, 0, 0],
