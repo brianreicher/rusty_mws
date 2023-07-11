@@ -3,7 +3,7 @@ import subprocess
 from setuptools import setup
 
 # install Rust 
-subprocess.call(["sh", "./install.sh"])
+# _: int = subprocess.call(["sh", "./install.sh"])
 
 setup(
     name="rusty_mws",
