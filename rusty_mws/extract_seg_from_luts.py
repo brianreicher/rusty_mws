@@ -10,11 +10,12 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 def extract_segmentation(
-        fragments_file:str,
-        fragments_dataset:str,
-        nworkers:int=20,
-        merge_function:str="mwatershed",
-        n_chunk_write:int=1) -> int:
+    fragments_file: str,
+    fragments_dataset: str,
+    nworkers: int = 20,
+    merge_function: str = "mwatershed",
+    n_chunk_write: int = 1,
+) -> int:
     """Extracts and relabels fragments to segment IDs from the saved LUT.
 
     Args:
@@ -29,16 +30,16 @@ def extract_segmentation(
 
         merge_function (``str``):
             Name of the segmentation algorithm used to denote in the MongoDB edge collection.
-        
+
         n_chunk_write (``integer``):
             Number of chunks to write for each Daisy block.
-    
+
     Returns:
         ``integer``:
             The number of unique segment IDs in the final segmentation.
     """
-        
-    lut_dir = os.path.join(fragments_file,'luts_full')
+
+    lut_dir = os.path.join(fragments_file, "luts_full")
 
     fragments = daisy.open_ds(fragments_file, fragments_dataset)
 
@@ -48,8 +49,8 @@ def extract_segmentation(
     total_roi = fragments.roi
     chunk_shape = np.array(fragments.chunk_shape)
 
-    read_roi_voxels=daisy.Roi((0, 0, 0), chunk_shape*n_chunk_write)
-    write_roi_voxels=read_roi_voxels
+    read_roi_voxels = daisy.Roi((0, 0, 0), chunk_shape * n_chunk_write)
+    write_roi_voxels = read_roi_voxels
 
     read_roi = read_roi_voxels * voxel_size
     write_roi = write_roi_voxels * voxel_size
@@ -67,19 +68,18 @@ def extract_segmentation(
         voxel_size=voxel_size,
         dtype=np.uint64,
         write_roi=write_roi,
-        delete=True)
+        delete=True,
+    )
 
-    lut_filename = f'seg_{merge_function}'
+    lut_filename = f"seg_{merge_function}"
 
-    lut = os.path.join(
-            lut_dir,
-            lut_filename + '.npz')
+    lut = os.path.join(lut_dir, lut_filename + ".npz")
 
     assert os.path.exists(lut), f"{lut} does not exist"
 
     logging.info("Reading fragment-segment LUT...")
 
-    lut = np.load(lut)['fragment_segment_lut']
+    lut = np.load(lut)["fragment_segment_lut"]
 
     logging.info(f"Found {len(lut[0])} fragments in LUT")
 
@@ -87,32 +87,27 @@ def extract_segmentation(
     logging.info(f"Relabelling fragments to {num_segments} segments")
 
     task = daisy.Task(
-        'ExtractSegmentationTask',
+        "ExtractSegmentationTask",
         total_roi,
         read_roi,
         write_roi,
-        lambda b: segment_in_block(
-            b,
-            segmentation,
-            fragments,
-            lut),
-        fit='shrink',
-        num_workers=nworkers)
+        lambda b: segment_in_block(b, segmentation, fragments, lut),
+        fit="shrink",
+        num_workers=nworkers,
+    )
 
     done: bool = daisy.run_blockwise(tasks=[task])
 
     if not done:
-        raise RuntimeError("Extraction of segmentation from LUT failed for (at least) one block")
+        raise RuntimeError(
+            "Extraction of segmentation from LUT failed for (at least) one block"
+        )
 
     logging.info(f"Took {time.time() - start} seconds to extract segmentation from LUT")
     return num_segments
 
-def segment_in_block(
-        block:daisy.Block,
-        segmentation,
-        fragments,
-        lut):
 
+def segment_in_block(block: daisy.Block, segmentation, fragments, lut):
     logging.info("Copying fragments to memory...")
 
     # load fragments

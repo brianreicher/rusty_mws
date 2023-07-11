@@ -15,22 +15,24 @@ from .rusty_segment_mws import neighborhood
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-def blockwise_generate_super_voxel_edges_task(sample_name:str, 
-                                            affs_file:str,
-                                            affs_dataset,
-                                            fragments_file:str,
-                                            fragments_dataset:str,
-                                            context:Coordinate,
-                                            nworkers:int=20,
-                                            merge_function:str="mwatershed",
-                                            lr_bias_ratio:float=-.175,
-                                            neighborhood_length: int = 8,) -> bool:
+def blockwise_generate_super_voxel_edges_task(
+    sample_name: str,
+    affs_file: str,
+    affs_dataset,
+    fragments_file: str,
+    fragments_dataset: str,
+    context: Coordinate,
+    nworkers: int = 20,
+    merge_function: str = "mwatershed",
+    lr_bias_ratio: float = -0.175,
+    neighborhood_length: int = 8,
+) -> bool:
     """Generates supervoxel edges and stores weighted edges in the MongoDB graph.
 
     Args:
         sample_name (``str``):
             A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name
-        
+
         affs_file (``str``):
             Path (relative or absolute) to the zarr file containing predicted affinities to generate fragments for.
 
@@ -42,49 +44,49 @@ def blockwise_generate_super_voxel_edges_task(sample_name:str,
 
         fragments_dataset (``str``):
             The name of the fragments dataset to read from.
-        
+
         context (``daisy.Coordinate``):
             A coordinate object (3-dimensional) denoting how much contextual space to grow for the total volume ROI.
 
         nworkers (``integer``):
             Number of distributed workers to run the Daisy parallel task with.
-        
+
         merge_function (``str``):
             Name of the segmentation algorithm used to denote in the MongoDB edge collection.
 
         lr_bias_ratio (``float``):
             Ratio at which to tweak the lr shift in offsets.
-        
+
         neighborhood_length (``integer``):
             Number of neighborhood offsets to use, default is 8.
-        
-   
+
+
     Returns:
         ``bool``:
             Returns ``true`` if all Daisy tasks complete successfully.
     """
 
-    
     logging.info("Reading affs and fragments")
-    
+
     affs: Array = open_ds(affs_file, affs_dataset, mode="r")
-    
-    chunk_shape = affs.chunk_shape[affs.n_channel_dims:]
+
+    chunk_shape = affs.chunk_shape[affs.n_channel_dims :]
 
     # task params
     voxel_size = affs.voxel_size
-    read_roi_voxels=daisy.Roi((0, 0, 0), chunk_shape).grow(context, context)
-    write_roi_voxels=daisy.Roi((0, 0, 0), chunk_shape)
+    read_roi_voxels = daisy.Roi((0, 0, 0), chunk_shape).grow(context, context)
+    write_roi_voxels = daisy.Roi((0, 0, 0), chunk_shape)
     total_roi = affs.roi.grow(context * voxel_size, context * voxel_size)
 
     read_roi = read_roi_voxels * voxel_size
     write_roi = write_roi_voxels * voxel_size
 
-
     fragments: Array = open_ds(fragments_file, fragments_dataset, mode="r+")
 
     # worker func
-    def generate_super_voxel_edges_worker(block: daisy.Block, affs=affs, fragments=fragments) -> tuple:
+    def generate_super_voxel_edges_worker(
+        block: daisy.Block, affs=affs, fragments=fragments
+    ) -> tuple:
         try:
             # open RAG DB
             db_host: str = "mongodb://localhost:27017"
@@ -98,7 +100,8 @@ def blockwise_generate_super_voxel_edges_task(sample_name:str,
                 directed=False,
                 nodes_collection=sample_name + "_nodes",
                 edges_collection=sample_name + "_edges_" + merge_function,
-                position_attribute=["center_z", "center_y", "center_x"],)
+                position_attribute=["center_z", "center_y", "center_x"],
+            )
             logging.info("MongoDB Graph Provider opened")
 
             # open block done DB
@@ -106,11 +109,13 @@ def blockwise_generate_super_voxel_edges_task(sample_name:str,
             db = client[db_name]
             completed_collection_name = f"{sample_name}_agglom_blocks_completed"
             completed_collection = db[completed_collection_name]
-            
+
             logger.info("getting block")
             start: float = time.time()
             logger.info(
-                "Agglomerating in block %s with context of %s", block.write_roi, block.read_roi
+                "Agglomerating in block %s with context of %s",
+                block.write_roi,
+                block.read_roi,
             )
             logger.info("block read roi begin: %s", block.read_roi.get_begin())
             logger.info("block read roi shape: %s", block.read_roi.get_shape())
@@ -118,11 +123,15 @@ def blockwise_generate_super_voxel_edges_task(sample_name:str,
             logger.info("block write roi shape: %s", block.write_roi.get_shape())
 
             # get the sub-{affs, fragments, graph} to work on
-            affs  = affs.intersect(block.read_roi)
-            fragments: np.ndarray  = fragments.to_ndarray(affs.roi, fill_value=0)
-            fragment_ids: np.ndarray = np.array([x for x in np.unique(fragments) if x != 0])
+            affs = affs.intersect(block.read_roi)
+            fragments: np.ndarray = fragments.to_ndarray(affs.roi, fill_value=0)
+            fragment_ids: np.ndarray = np.array(
+                [x for x in np.unique(fragments) if x != 0]
+            )
             num_frags: int = len(fragment_ids)
-            frag_mapping: dict = {old: seq for seq, old in zip(range(1, num_frags + 1), fragment_ids)}
+            frag_mapping: dict = {
+                old: seq for seq, old in zip(range(1, num_frags + 1), fragment_ids)
+            }
             rev_frag_mapping: dict = {
                 seq: old for seq, old in zip(range(1, num_frags + 1), fragment_ids)
             }
@@ -161,7 +170,9 @@ def blockwise_generate_super_voxel_edges_task(sample_name:str,
             base_fragments = np.expand_dims(
                 fragments[tuple(slice(0, -m) for m in max_offset)], 0
             )
-            base_affs = affs[(slice(None, None),) + tuple(slice(0, -m) for m in max_offset)]
+            base_affs = affs[
+                (slice(None, None),) + tuple(slice(0, -m) for m in max_offset)
+            ]
             offset_frags = []
             for offset in adjacents:
                 offset_frags.append(
@@ -173,15 +184,19 @@ def blockwise_generate_super_voxel_edges_task(sample_name:str,
                     ]
                 )
 
-            offset_frags: np.ndarray  = np.stack(offset_frags, axis=0)
+            offset_frags: np.ndarray = np.stack(offset_frags, axis=0)
             mask = offset_frags != base_fragments
 
             # cantor pairing function
             mismatched_labels = (
-                (offset_frags + base_fragments) * (offset_frags + base_fragments + 1) // 2
+                (offset_frags + base_fragments)
+                * (offset_frags + base_fragments + 1)
+                // 2
                 + base_fragments
             ) * mask
-            mismatched_ids: np.ndarray  = np.array([x for x in np.unique(mismatched_labels) if x != 0])
+            mismatched_ids: np.ndarray = np.array(
+                [x for x in np.unique(mismatched_labels) if x != 0]
+            )
             adjacent_score: float = measurements.median(
                 base_affs,
                 mismatched_labels,
@@ -217,7 +232,9 @@ def blockwise_generate_super_voxel_edges_task(sample_name:str,
                 // 2
                 + base_lr_fragments
             ) * lr_mask
-            lr_mismatched_ids: np.ndarray  = np.array([x for x in np.unique(lr_mismatched_labels) if x != 0])
+            lr_mismatched_ids: np.ndarray = np.array(
+                [x for x in np.unique(lr_mismatched_labels) if x != 0]
+            )
             lr_adjacent_score = measurements.median(
                 base_lr_affs,
                 lr_mismatched_labels,
@@ -228,7 +245,9 @@ def blockwise_generate_super_voxel_edges_task(sample_name:str,
                 for seq_id, med_score in zip(lr_mismatched_ids, lr_adjacent_score)
             }
 
-            for seq_id_u, seq_id_v in itertools.combinations(range(1, num_frags + 1), 2):
+            for seq_id_u, seq_id_v in itertools.combinations(
+                range(1, num_frags + 1), 2
+            ):
                 cantor_id_u: int = (
                     (seq_id_u + seq_id_v) * (seq_id_u + seq_id_v + 1)
                 ) // 2 + seq_id_u
@@ -286,25 +305,25 @@ def blockwise_generate_super_voxel_edges_task(sample_name:str,
                 "start": start,
                 "duration": time.time() - start,
             }
-            
+
             # add block to completed array
             completed_collection.insert_one(document=document)
 
-            logger.info(f'block information: {document}')
+            logger.info(f"block information: {document}")
             logger.info(f"releasing block: {block}")
             return True
         except:
             pass
-    
 
     # create Daisy distributed task
-    task = daisy.Task("GenSupervoxelEdgesTask",
-                      total_roi=total_roi,
-                      read_roi=read_roi,
-                      write_roi=write_roi,
-                      process_function=generate_super_voxel_edges_worker,
-                      num_workers=nworkers,
-                    )
+    task = daisy.Task(
+        "GenSupervoxelEdgesTask",
+        total_roi=total_roi,
+        read_roi=read_roi,
+        write_roi=write_roi,
+        process_function=generate_super_voxel_edges_worker,
+        num_workers=nworkers,
+    )
 
     # run task blockwise
     ret = daisy.run_blockwise([task])

@@ -9,18 +9,19 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 def skel_correct_segmentation(
-    raster_file:str="../../data/xpress-challenge.zarr",
-    raster_dataset:str="volumes/validation_gt_rasters",
-    fragments_file:str="./raw_predictions.zarr",
-    fragments_dataset:str="frags",
-    seg_file:str="./raw_predictions.zarr",
-    seg_dataset:str="pred_seg",
-    nworkers:int=25,
-    erode_iterations:int=0,
-    erode_footprint:np.ndarray=ball(radius=5),
-    alternate_dilate:bool=True,
-    dilate_footprint:np.ndarray=ball(radius=5),
-    n_chunk_write: int = 2,) -> bool:
+    raster_file: str = "../../data/xpress-challenge.zarr",
+    raster_dataset: str = "volumes/validation_gt_rasters",
+    fragments_file: str = "./raw_predictions.zarr",
+    fragments_dataset: str = "frags",
+    seg_file: str = "./raw_predictions.zarr",
+    seg_dataset: str = "pred_seg",
+    nworkers: int = 25,
+    erode_iterations: int = 0,
+    erode_footprint: np.ndarray = ball(radius=5),
+    alternate_dilate: bool = True,
+    dilate_footprint: np.ndarray = ball(radius=5),
+    n_chunk_write: int = 2,
+) -> bool:
     """Corrects inintial fragments using pre-defined skeletons to create an agglomerated full segmentation.
 
     Args:
@@ -30,35 +31,35 @@ def skel_correct_segmentation(
 
     raster_dataset (``str``):
         The name of the fragments dataset to read from.
-        
+
 
     fragments_file (``str``):
         Path (relative or absolute) to the zarr file containing fragments.
 
     fragments_dataset (``str``):
         The name of the fragments dataset to read from.
-    
+
     seg_file (``str``):
         Path (relative or absolute) to the zarr file to write fragments to.
-    
+
     seg_dataset (``str``):
         The name of the segmentation dataset to write to.
 
     nworkers (``integer``):
             Number of distributed workers to run the Daisy parallel task with.
-  
+
     erode_iterations (``integer``):
         Number of iterations to erode/dialate agglomerated fragments.
-    
+
     erode_footprint (``np.ndarray``):
         Numpy array denoting a ball of a given radius to erode segments by.
-    
+
     alternate_dilate (``bool``):
         Flag that will allow for alterate erosions/dialations during segmentation.
-    
+
     dialate_footprint (``np.ndarray``):
         Numpy array denoting a ball of a given radius to dialate segments by.
-    
+
     n_chunk_write (``integer``):
             Number of chunks to write for each Daisy block.
 
@@ -67,7 +68,6 @@ def skel_correct_segmentation(
             Returns ``true`` if all Daisy tasks complete successfully.
     """
 
-    
     frags: Array = open_ds(filename=fragments_file, ds_name=fragments_dataset)
     raster_ds: Array = open_ds(raster_file, raster_dataset)
     chunk_shape: tuple = frags.chunk_shape[frags.n_channel_dims :]

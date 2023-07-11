@@ -21,9 +21,9 @@ logger: logging.Logger = logging.getLogger(__name__)
 def blockwise_generate_mutex_fragments_task(
     sample_name: str,
     affs_file: str,
-    affs_dataset:str,
+    affs_dataset: str,
     fragments_file: str,
-    fragments_dataset:str,
+    fragments_dataset: str,
     context: Coordinate,
     filter_val: float = 0.60,
     nworkers: int = 10,
@@ -36,13 +36,13 @@ def blockwise_generate_mutex_fragments_task(
     lr_bias_ratio: float = -0.175,
     adjacent_edge_bias: float = -0.4,  # bias towards merging
     neighborhood_length: int = 8,
-    ) -> bool:
-    """ Generates Mutex Watershed fragments and saves fragment nodes & weights in a graph.
+) -> bool:
+    """Generates Mutex Watershed fragments and saves fragment nodes & weights in a graph.
 
     Args:
         sample_name (``str``):
             A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name
-        
+
         affs_file (``str``):
             Path (relative or absolute) to the zarr file containing predicted affinities to generate fragments for.
 
@@ -90,12 +90,11 @@ def blockwise_generate_mutex_fragments_task(
 
         neighborhood_length (``integer``):
             Number of neighborhood offsets to use, default is 8.
-        
+
         Returns:
             ``bool``:
                 Returns ``true`` if all Daisy tasks complete successfully.
     """
-
 
     logger.info("Reading affs from %s", affs_file)
     logger.info(f"Experiment name: {sample_name}")
@@ -211,7 +210,6 @@ def blockwise_generate_mutex_fragments_task(
 
         offsets: list[list[int]] = neighborhood[:neighborhood_length]
 
-
         these_affs: Array = affs.intersect(block.read_roi)
         these_affs.materialize()
 
@@ -248,8 +246,8 @@ def blockwise_generate_mutex_fragments_task(
         logger.info("Shifting affs")
         shift: np.ndarray = np.array(
             [
-                adjacent_edge_bias if max(offset) <= 1
-
+                adjacent_edge_bias
+                if max(offset) <= 1
                 else np.linalg.norm(offset) * lr_bias_ratio
                 for offset in offsets
             ]

@@ -9,24 +9,27 @@ from funlib.persistence import open_ds, graphs
 
 logger: logging.Logger = logging.getLogger(__name__)
 
-def global_mutex_watershed_on_super_voxels(sample_name:str,
-                                        fragments_file:str,
-                                        fragments_dataset,
-                                        merge_function:str="mwatershed",
-                                        adj_bias:float=7., 
-                                        lr_bias:float=-1.2) -> bool:
+
+def global_mutex_watershed_on_super_voxels(
+    sample_name: str,
+    fragments_file: str,
+    fragments_dataset,
+    merge_function: str = "mwatershed",
+    adj_bias: float = 7.0,
+    lr_bias: float = -1.2,
+) -> bool:
     """Performs global agglomeration on the MWS fragments in file, reading and storing new segment IDs in a LUT.
-    
+
     Args:
         sample_name (``str``):
                 A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name.
-        
+
         fragments_file (``str``):
                 Path (relative or absolute) to the zarr file containing fragments.
 
         fragments_dataset (``str``):
             The name of the fragments dataset to read from.
-        
+
         merge_function (``str``):
             Name of the segmentation algorithm used to denote in the MongoDB edge collection.
 
@@ -36,12 +39,11 @@ def global_mutex_watershed_on_super_voxels(sample_name:str,
         lr_bias (``float``):
             Amount to bias long-range pixel weights when computing segmentation from the stored graph.
 
-            
+
     Returns:
         ``bool``:
             Returns ``true`` if all Daisy tasks complete successfully.
     """
-
 
     db_host: str = "mongodb://localhost:27017"
     db_name: str = "seg"
@@ -77,12 +79,12 @@ def global_mutex_watershed_on_super_voxels(sample_name:str,
         return
     nodes: np.ndarray = np.array(graph.nodes)
     edges: np.ndarray = np.stack(list(graph.edges), axis=0)
-    adj_scores: np.ndarray = np.array([graph.edges[tuple(e)]["adj_weight"] for e in edges]).astype(
-        np.float32
-    )
-    lr_scores: np.ndarray = np.array([graph.edges[tuple(e)]["lr_weight"] for e in edges]).astype(
-        np.float32
-    )
+    adj_scores: np.ndarray = np.array(
+        [graph.edges[tuple(e)]["adj_weight"] for e in edges]
+    ).astype(np.float32)
+    lr_scores: np.ndarray = np.array(
+        [graph.edges[tuple(e)]["lr_weight"] for e in edges]
+    ).astype(np.float32)
 
     print("Complete RAG contains %d nodes, %d edges" % (len(nodes), len(edges)))
 
@@ -92,8 +94,6 @@ def global_mutex_watershed_on_super_voxels(sample_name:str,
 
     start = time.time()
 
-
-
     segment(
         edges=edges,
         adj_scores=adj_scores,
@@ -101,13 +101,22 @@ def global_mutex_watershed_on_super_voxels(sample_name:str,
         merge_function=merge_function,
         out_dir=out_dir,
         adj_bias=adj_bias,
-        lr_bias=lr_bias
+        lr_bias=lr_bias,
     )
-    
+
     print("Created and stored lookup tables in %.3fs" % (time.time() - start))
     return True
 
-def segment(edges:np.ndaray, adj_scores:np.ndarray, lr_scores:np.ndarray, merge_function:str, out_dir:str, adj_bias:float, lr_bias:float) -> None:
+
+def segment(
+    edges: np.ndaray,
+    adj_scores: np.ndarray,
+    lr_scores: np.ndarray,
+    merge_function: str,
+    out_dir: str,
+    adj_bias: float,
+    lr_bias: float,
+) -> None:
     """Segmentation function used to compute and store segment IDs in a LUT.
 
     Args:
@@ -116,16 +125,16 @@ def segment(edges:np.ndaray, adj_scores:np.ndarray, lr_scores:np.ndarray, merge_
 
         adj_scores (``np.ndarray``):
             An array of adjacent agglomeration scores, read from the MongoDB graph.
-        
+
         lr_scores (``np.ndarray``):
             An array of long-range agglomeration scores, reaad from the MongoDB graph.
 
         merge_function (``str``):
             Name of the segmentation algorithm used to denote in the MongoDB edge collection.
-        
+
         out_dir (``str``):
             Directory in which to store the .npz LUT.
-        
+
         adj_bias (``float``):
             Value which to bias adjacent pixel agglomeration weights by.
 
@@ -164,6 +173,5 @@ def segment(edges:np.ndaray, adj_scores:np.ndarray, lr_scores:np.ndarray, merge_
 
     out_file: str = os.path.join(out_dir, lookup)
     np.savez_compressed(out_file, fragment_segment_lut=lut, edges=edges)
-
 
     print("%.3fs" % (time.time() - start))
