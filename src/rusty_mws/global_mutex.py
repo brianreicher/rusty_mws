@@ -109,7 +109,7 @@ def global_mutex_watershed_on_super_voxels(
 
 
 def segment(
-    edges: np.ndaray,
+    edges: np.ndarray,
     adj_scores: np.ndarray,
     lr_scores: np.ndarray,
     merge_function: str,
