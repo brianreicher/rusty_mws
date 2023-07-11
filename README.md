@@ -4,7 +4,7 @@
 [![](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 
-## An optimized implementation of Rust-based Mutex Watershed image segmentation, built using MongoDB.
+## An optimized implementation of Rust-based Mutex Watershed image segmentation, built on MongoDB.
 
 
 
