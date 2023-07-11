@@ -20,7 +20,7 @@ def skel_correct_segmentation(
     erode_footprint: np.ndarray = ball(radius=5),
     alternate_dilate: bool = True,
     dilate_footprint: np.ndarray = ball(radius=5),
-    n_chunk_write: int = 2,
+    n_chunk_write: int = 1,
 ) -> bool:
     """Corrects inintial fragments using pre-defined skeletons to create an agglomerated full segmentation.
 
