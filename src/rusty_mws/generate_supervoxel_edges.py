@@ -15,7 +15,7 @@ from .utils import neighborhood
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-def blockwise_generate_super_voxel_edges_task(
+def blockwise_generate_supervoxel_edges(
     sample_name: str,
     affs_file: str,
     affs_dataset,

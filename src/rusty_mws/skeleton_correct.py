@@ -168,13 +168,3 @@ def skel_correct_segmentation(
     # run task
     ret: bool = daisy.run_blockwise([task])
     return ret
-
-
-if __name__ == "__main__":
-    skel_correct_segmentation(
-        raster_file="../../../data/xpress-challenge.zarr",
-        raster_name="volumes/validation_gt_rasters",
-        frag_file="./raw_predictions.zarr",
-        frag_name="cropped_frags",
-        seg_file="./raw_predictions.zarr",
-    )

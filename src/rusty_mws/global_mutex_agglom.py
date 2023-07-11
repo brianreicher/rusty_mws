@@ -10,7 +10,7 @@ from funlib.persistence import open_ds, graphs
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-def global_mutex_watershed_on_super_voxels(
+def global_mutex_agglomeration(
     sample_name: str,
     fragments_file: str,
     fragments_dataset,

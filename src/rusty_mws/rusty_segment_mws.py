@@ -2,9 +2,9 @@ import logging
 import time
 import os
 from funlib.geometry import Coordinate
-from .mutex_fragments_worker import *
-from .supervoxels_worker import *
-from .global_mutex import *
+from .generate_mutex_fragments import *
+from .generate_supervoxel_edges import *
+from .global_mutex_agglom import *
 from .extract_seg_from_luts import *
 from .skeleton_correct import *
 
@@ -83,7 +83,7 @@ def get_corrected_segmentation(
 
     success: bool = True
     if seeded:
-        success = success & blockwise_generate_mutex_fragments_task(
+        success = success & blockwise_generate_mutex_fragments(
             sample_name=sample_name,
             affs_file=affs_file,
             affs_dataset=affs_dataset,
@@ -96,7 +96,7 @@ def get_corrected_segmentation(
             training=True,
         )
     else:
-        success = success & blockwise_generate_mutex_fragments_task(
+        success = success & blockwise_generate_mutex_fragments(
             sample_name=sample_name,
             affs_file=affs_file,
             affs_dataset=affs_dataset,
@@ -184,7 +184,7 @@ def get_pred_segmentation(
     success: bool = True
 
     if generate_frags_and_edges:
-        success = success & blockwise_generate_mutex_fragments_task(
+        success = success & blockwise_generate_mutex_fragments(
             sample_name,
             affs_file,
             affs_dataset,
@@ -194,7 +194,7 @@ def get_pred_segmentation(
             filter_fragments,
             training=False,
         )
-        success = success & blockwise_generate_super_voxel_edges_task(
+        success = success & blockwise_generate_supervoxel_edges(
             sample_name,
             affs_file,
             affs_dataset,
@@ -203,7 +203,7 @@ def get_pred_segmentation(
             context,
         )
 
-    success = success & global_mutex_watershed_on_super_voxels(
+    success = success & global_mutex_agglomeration(
         fragments_file,
         fragments_dataset,
         sample_name=sample_name,
@@ -247,7 +247,7 @@ def optimize_pred_segmentation(
             The name of the fragments dataset to read from in the fragments_file.
 
     """
-    global_mutex_watershed_on_super_voxels(
+    global_mutex_agglomeration(
         fragments_file,
         fragments_dataset,
         sample_name,

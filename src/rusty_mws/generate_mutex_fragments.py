@@ -18,7 +18,7 @@ from .utils import neighborhood
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-def blockwise_generate_mutex_fragments_task(
+def blockwise_generate_mutex_fragments(
     sample_name: str,
     affs_file: str,
     affs_dataset: str,
