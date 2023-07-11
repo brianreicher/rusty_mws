@@ -14,7 +14,7 @@ class MongoGraphTests(unittest.TestCase):
 
         mongo_drop = pymongo.MongoClient(db_host)[db_name]
         collection_names: list = mongo_drop.list_collection_names()
-        
+
         sample_name: str = "htem4413041148969302336"
         for collection_name in collection_names:
             if sample_name in collection_name:
@@ -46,5 +46,6 @@ class MongoGraphTests(unittest.TestCase):
     def test_read(self):
         pass
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
