@@ -35,7 +35,7 @@ def blockwise_generate_mutex_fragments_task(
     n_chunk_write: int = 2,
     lr_bias_ratio: float = -0.175,
     adjacent_edge_bias: float = -0.4,  # bias towards merging
-    neighborhood_length: int = 8,
+    neighborhood_length: int = 12,
 ) -> bool:
     """Generates Mutex Watershed fragments and saves fragment nodes & weights in a graph.
 
@@ -55,7 +55,7 @@ def blockwise_generate_mutex_fragments_task(
         fragments_dataset (``str``):
             The name of the fragments dataset to read/write to in the fragments_file.
 
-        context (``daisy.Coordinate``):
+        context (``funlib.geometry.Coordinate``):
             A coordinate object (3-dimensional) denoting how much contextual space to grow for the total volume ROI.
 
         filter_val (``float``):
