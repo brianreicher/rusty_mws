@@ -12,10 +12,15 @@
 
 ### Installation
 
+Install Rust and Cargo via RustUp:
 `curl https://sh.rustup.rs -sSf | sh`
 
+Install MongoDB and initialize a MongoDB server on your machine:
 `curl -fsSL https://pgp.mongodb.com/server-6.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-6.0.gpg --dearmor`
 
+`mongod`
+
+Install `rusty_mws`
 `pip install git+https://github.com/brianreicher/rusty_mws.git`
 
 ### Features
