@@ -9,7 +9,7 @@ import pymongo
 import daisy
 from funlib.geometry import Coordinate
 from funlib.persistence import open_ds, Array, graphs
-from .rusty_segment_mws import neighborhood
+from .utils import neighborhood
 
 
 logger: logging.Logger = logging.getLogger(__name__)
