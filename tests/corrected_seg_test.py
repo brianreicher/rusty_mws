@@ -32,7 +32,7 @@ class CorrectedSegTest(unittest.TestCase):
         self.assertEqual(first=task_completion, second=True)
 
     def test_corrected_segmentation_full(self) -> None:
-        task_completion: bool = rusty_mws.get_corrected_segmentation(
+        task_completion: bool = rusty_mws.run_corrected_segmentation_pipleine(
             affs_file="../data/raw_predictions.zarr",
             affs_dataset="pred_affs_latest",
             fragments_file="../data/raw_predictions.zarr",

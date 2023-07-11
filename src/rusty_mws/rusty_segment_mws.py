@@ -12,7 +12,7 @@ from .skeleton_correct import *
 logger: logging.Logger = logging.getLogger(name=__name__)
 
 
-def get_corrected_segmentation(
+def run_corrected_segmentation_pipleine(
     affs_file: str,
     affs_dataset: str,
     fragments_file: str,
@@ -120,7 +120,7 @@ def get_corrected_segmentation(
     return success
 
 
-def get_pred_segmentation(
+def run_pred_segmentation_pipeline(
     affs_file: str,
     affs_dataset: str,
     fragments_file: str,
