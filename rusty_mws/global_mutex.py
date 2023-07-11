@@ -19,7 +19,7 @@ def global_mutex_watershed_on_super_voxels(sample_name:str,
     
     Args:
         sample_name (``str``):
-                A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name
+                A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name.
         
         fragments_file (``str``):
                 Path (relative or absolute) to the zarr file containing fragments.
