@@ -24,8 +24,8 @@ setup(
             "pymongo",
             "scikit-image",
             "mwatershed @ git+https://github.com/pattonw/mwatershed",
-            "funlib.geometry @ git+https://github.com/funkelab/funlib.geometry@976dc2c#egg=funlib.geometry",
-            "gunpowder @ git+https://github.com/funkey/gunpowder@68dffe1#egg=gunpowder",
+            "funlib.geometry @ git+https://github.com/funkelab/funlib.geometry",
+            "gunpowder @ git+https://github.com/funkey/gunpowder",
             "funlib.persistence @ git+https://github.com/funkelab/funlib.persistence.git",
             "daisy",
             "funlib.segment @ git+https://github.com/funkelab/funlib.segment.git"
