@@ -126,10 +126,10 @@ def run_pred_segmentation_pipeline(
     fragments_file: str,
     fragments_dataset,
     context: list,
-    filter_fragments: float,
-    adj_bias: float,
-    lr_bias: float,
-    generate_frags_and_edges: bool = False,
+    filter_fragments: float = 0.5,
+    adj_bias: float = -0.1,
+    lr_bias: float = -1.5,
+    generate_frags_and_edges: bool = True,
     sample_name=None,
 ) -> bool:
     """Full Mutex Watershed segmentation and agglomeration, using a MongoDB graph.
