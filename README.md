@@ -4,7 +4,7 @@
 [![](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 
-## An optimized implementation of Rust-based Mutex Watershed image segmentation, built on MongoDB.
+## An parallelized implementation of Rust-based Mutex Watershed image segmentation, built using MongoDB and Daisy for distributed processing.
 
 
 
@@ -30,12 +30,8 @@ And initialize a MongoDB server in a screen on your machine:
 
 ```bash
 screen
-```
-
-```bash
 mongod
 ```
-
 
 Install `rusty_mws`:
 
@@ -45,7 +41,8 @@ pip install git+https://github.com/brianreicher/rusty_mws.git
 
 ### Features
 
-* A mutex watershed implementation for affinities
+* A mutex watershed implementation to go from affininities to a full segmentation
+* Able to run pipelines for skeleton-corrected segmentation (without graph agglomeration) or graph-based Mutex Watershed segmentation
 * Should handle up to 6 dimensional arrays of fragments (7 dimensions if you include offsets in affinities) but only tested on 2 and 3 dimensions
 
 ### Usage
