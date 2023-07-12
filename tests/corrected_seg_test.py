@@ -5,7 +5,7 @@ import numpy as np
 
 
 class CorrectedSegTest(unittest.TestCase):
-    def generate_fragments(self) -> None:
+    def test_generate_fragments(self) -> None:
         task_completion: bool = rusty_mws.blockwise_generate_mutex_fragments_task(
             sample_name="test",
             affs_file="../data/raw_predictions.zarr",

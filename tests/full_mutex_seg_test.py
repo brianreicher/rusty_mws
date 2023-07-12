@@ -52,8 +52,6 @@ class CorrectedSegTest(unittest.TestCase):
             affs_dataset="pred_affs_latest",
             fragments_file="../data/raw_predictions.zarr",
             fragments_dataset="frag_seg",
-            seeds_file="../data/raw_predictions.zarr",
-            seeds_dataset="training_gt_rasters",
             context=Coordinate(np.max(a=np.abs(rusty_mws.neighborhood), axis=0)),
         )
         self.assertEqual(first=task_completion, second=True)
