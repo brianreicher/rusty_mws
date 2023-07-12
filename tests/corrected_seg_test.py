@@ -22,8 +22,8 @@ class CorrectedSegTest(unittest.TestCase):
 
     def test_skeleton_correction(self) -> None:
         task_completion: bool = rusty_mws.skel_correct_segmentation(
-            raster_file="../data/raw_predictions.zarr",
-            raster_dataset="training_gt_rasters",
+            seeds_file="../data/raw_predictions.zarr",
+            seeds_dataset="training_gt_rasters",
             fragments_file="../data/raw_predictions.zarr",
             fragments_dataset="frag_seg",
             seg_file="../data/raw_predictions.zarr",

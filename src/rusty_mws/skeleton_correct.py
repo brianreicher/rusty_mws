@@ -9,8 +9,8 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 def skel_correct_segmentation(
-    raster_file: str = "../../data/xpress-challenge.zarr",
-    raster_dataset: str = "volumes/validation_gt_rasters",
+    seeds_file: str = "../../data/xpress-challenge.zarr",
+    seeds_dataset: str = "volumes/validation_gt_rasters",
     fragments_file: str = "./raw_predictions.zarr",
     fragments_dataset: str = "frags",
     seg_file: str = "./raw_predictions.zarr",
@@ -26,10 +26,10 @@ def skel_correct_segmentation(
 
     Args:
 
-    raster_file (``str``):
+    seeds_file (``str``):
         Path (relative or absolute) to the zarr file containing fragments.
 
-    raster_dataset (``str``):
+    seeds_dataset (``str``):
         The name of the fragments dataset to read from.
 
 
@@ -69,7 +69,7 @@ def skel_correct_segmentation(
     """
 
     frags: Array = open_ds(filename=fragments_file, ds_name=fragments_dataset)
-    raster_ds: Array = open_ds(raster_file, raster_dataset)
+    raster_ds: Array = open_ds(seeds_file, seeds_dataset)
     chunk_shape: tuple = frags.chunk_shape[frags.n_channel_dims :]
 
     # task params

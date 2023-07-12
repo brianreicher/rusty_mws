@@ -109,8 +109,8 @@ def run_corrected_segmentation_pipleine(
         )
 
     success = success & skel_correct_segmentation(
-        raster_file=seeds_file,
-        raster_name=seeds_dataset,
+        seeds_file=seeds_file,
+        seeds_dataset=seeds_dataset,
         frag_file=fragments_file,
         frag_name=fragments_dataset,
         seg_file=seg_file,
