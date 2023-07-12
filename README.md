@@ -4,7 +4,7 @@
 [![](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 
-## An parallelized implementation of Rust-based Mutex Watershed image segmentation, built using MongoDB and Daisy for distributed processing.
+## A parallelized implementation of Rust-based Mutex Watershed image segmentation, built using MongoDB and Daisy for distributed processing.
 
 
 
