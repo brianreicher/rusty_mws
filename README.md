@@ -14,7 +14,7 @@
 
 Install Rust and Cargo via RustUp:
 
-`curl https://sh.rustup.rs -sSf | sh`
+```curl https://sh.rustup.rs -sSf | sh```
 
 
 Install MongoDB:
