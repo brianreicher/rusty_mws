@@ -26,7 +26,11 @@ curl -fsSL https://pgp.mongodb.com/server-6.0.asc | sudo gpg -o /usr/share/keyri
 ```
 
 
-And initialize a MongoDB server on your machine:
+And initialize a MongoDB server in a screen on your machine:
+
+```bash
+screen
+```
 
 ```bash
 mongod
@@ -46,20 +50,44 @@ pip install git+https://github.com/brianreicher/rusty_mws.git
 
 ### Usage
 
+For seedless Mutex Watershed segmentation, using MongoDB:
 ```python
-components = mwatershed.agglom(
-    affinities: NDArray[np.float64],
-    offsets: list[list[int]],
-    seeds: NDArray[np.uint64],
-    edges: Optional[list[tuple[usize, usize, f64]]] = None,
-)
+_: bool = rusty_mws.run_pred_segmentation_pipeline(
+            affs_file="../data/raw_predictions.zarr",
+            affs_dataset="pred_affs_latest",
+            fragments_file="../data/raw_predictions.zarr",
+            fragments_dataset="frag_seg",
+            context=Coordinate(np.max(a=np.abs(rusty_mws.neighborhood), axis=0)),
+        )
 ```
 where:
-* `affinities` is a `k+1` dimensional array of non `nan` affinities with leading dimension having size `n`
-* `offsets` is a list of length `n` of offset tuples of `k` integers
-* `seeds` is a `k` dimensional array of fragment ids. Note `seeds.shape` must be equal to `affinities.shape[1:]`. Any entry not equal to 0 is guaranteed to stay that way, any entry equal to zero has no priors.
-* `edges` is a list of `(u, v, aff)` tuples to insert arbitrary extra affinities between fragment ids
+* `affs_file` is a path (relative or absolute) to the zarr file containing predicted affinities to generate fragments for.
+* `affs_dataset` is the name of the affinities dataset in the affs_file to read from.
+* `fragments_file` is a path (relative or absolute) to the zarr file to write fragments to.
+* `fragments_dataset` is the name of the fragments dataset to read/write to in the fragments_file.
+* `context` is a 3-dimensional coordinate object denoting how much contextual space to grow for the total volume ROI during segmentation.
+
+For seeded skeleton-corrected segmentation with Mutex Watershed fragments:
+```python
+_: bool = rusty_mws.run_corrected_segmentation_pipleine(
+            affs_file="../data/raw_predictions.zarr",
+            affs_dataset="pred_affs_latest",
+            fragments_file="../data/raw_predictions.zarr",
+            fragments_dataset="frag_seg",
+            seeds_file="../data/raw_predictions.zarr",
+            seeds_dataset="training_gt_rasters",
+            context=Coordinate(np.max(a=np.abs(rusty_mws.neighborhood), axis=0)),
+        )
+```
+where:
+* `affs_file` is a path (relative or absolute) to the zarr file containing predicted affinities to generate fragments for.
+* `affs_dataset` is the name of the affinities dataset in the affs_file to read from.
+* `fragments_file` is a path (relative or absolute) to the zarr file to write fragments to.
+* `fragments_dataset` is the name of the fragments dataset to read/write to in the fragments_file.
+* `seeds_file` is a path (relative or absolute) to the zarr file containing seeds.
+* `seeds_dataset` is the name of the seeds dataset in the seeds file to read from.
+* `context` is a 3-dimensional coordinate object denoting how much contextual space to grow for the total volume ROI during segmentation.
 
 ### Credits
 
-This package utililzes [`mwatershed`](https://github.com/pattonw/mwatershed), developed by William Patton.
+This package builds upon [`mwatershed`](https://github.com/pattonw/mwatershed), developed by William Patton.
