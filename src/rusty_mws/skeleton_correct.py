@@ -4,6 +4,8 @@ import daisy
 from skimage.morphology import ball, erosion, dilation
 import logging
 from funlib.persistence import Array, open_ds, prepare_ds
+from funlib.geometry import Coordinate, Roi
+
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -69,19 +71,19 @@ def skel_correct_segmentation(
     """
 
     frags: Array = open_ds(filename=fragments_file, ds_name=fragments_dataset)
-    raster_ds: Array = open_ds(seeds_file, seeds_dataset)
+    raster_ds: Array = open_ds(filename=seeds_file, ds_name=seeds_dataset)
     chunk_shape: tuple = frags.chunk_shape[frags.n_channel_dims :]
 
     # task params
-    voxel_size = frags.voxel_size
+    voxel_size: Coordinate = frags.voxel_size
     read_roi_voxels = daisy.Roi(
-        (0, 0, 0), chunk_shape * n_chunk_write
+        offset=(0, 0, 0), shape=chunk_shape * n_chunk_write
     )  # TODO: may want to add context here
-    write_roi_voxels = daisy.Roi((0, 0, 0), chunk_shape * n_chunk_write)
+    write_roi_voxels = daisy.Roi(offset=(0, 0, 0), shape=chunk_shape * n_chunk_write)
     total_roi = frags.roi
     dtype = frags.dtype
-    read_roi = read_roi_voxels * voxel_size
-    write_roi = write_roi_voxels * voxel_size
+    read_roi: Roi = read_roi_voxels * voxel_size
+    write_roi: Roi = write_roi_voxels * voxel_size
 
     # setup output zarr
     seg_ds = prepare_ds(
