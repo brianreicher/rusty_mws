@@ -50,6 +50,9 @@ def skel_correct_segmentation(
     nworkers (``integer``):
             Number of distributed workers to run the Daisy parallel task with.
 
+    n_chunk_write (``integer``):
+            Number of chunks to write for each Daisy block.
+
     erode_iterations (``integer``):
         Number of iterations to erode/dialate agglomerated fragments.
 
@@ -61,9 +64,6 @@ def skel_correct_segmentation(
 
     dialate_footprint (``np.ndarray``):
         Numpy array denoting a ball of a given radius to dialate segments by.
-
-    n_chunk_write (``integer``):
-            Number of chunks to write for each Daisy block.
 
     Returns:
         ``bool``:

@@ -19,14 +19,29 @@ def run_corrected_segmentation_pipeline(
     fragments_dataset,
     seeds_file: str,
     seeds_dataset: str,
+    seg_file: str,
+    seg_dataset: str,
     context: Coordinate,
-    filter_fragments: float = 0.5,
-    seg_file: str = "../data/raw_predictions.zarr",
-    seg_dataset: str = "pred_seg",
-    seeded: bool = True,
     sample_name=None,
+    mask_file: str = None,
+    mask_dataset: str = None,
+    filter_val: float = 0.5,
+    nworkers_frags: int = 10,
+    n_chunk_write_frags: int = 2,
+    lr_bias_ratio: float = -0.175,
+    adjacent_edge_bias: float = -0.4,
+    neighborhood_length: int = 12,
+    mongo_port: int = 27017,
+    db_name: str = "seg",
+    seeded: bool = True,
+    nworkers_correct: int = 25,
+    n_chunk_write_correct: int = 1,
+    erode_iterations: int = 0,
+    erode_footprint: np.ndarray = ball(radius=5),
+    alternate_dilate: bool = True,
+    dilate_footprint: np.ndarray = ball(radius=5),
 ) -> bool:
-    """Full skeleton-corrected Mutex segmentation from affinities.
+    """Full skeleton-corrected MWS segmentation from affinities.
 
     Args:
         affs_file (``str``):
@@ -46,24 +61,63 @@ def run_corrected_segmentation_pipeline(
 
         seeds_dataset (``str``):
             The name of the seeds dataset in the seeds file to read from.
-
-        context (``daisy.Coordinate``):
-            A coordinate object (3-dimensional) denoting how much contextual space to grow for the total volume ROI.
-
-        filter_val (``float``):
-            The amount for which fragments will be filtered if their average falls below said value.
-
+        
         seg_file (``str``):
             Path (relative or absolute) to the zarr file to write fragments to.
 
         seg_dataset (``str``):
             The name of the segmentation dataset to write to.
 
+        context (``daisy.Coordinate``):
+            A coordinate object (3-dimensional) denoting how much contextual space to grow for the total volume ROI.
+        
+        sample_name (``str``):
+            A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name.
+
+        filter_val (``float``):
+            The amount for which fragments will be filtered if their average falls below said value.
+
+        nworkers_frags (``integer``):
+            Number of distributed workers to run the Daisy parallel fragment task with.
+        
+        n_chunk_write_frags (``integer``):
+            Number of chunks to write for each Daisy block in the fragment task.
+
+        lr_bias_ratio (``float``):
+            Ratio at which to tweak the lr shift in offsets.
+
+        adjacent_edge_bias (``float``):
+            Weight base at which to bias adjacent edges.
+
+        neighborhood_length (``integer``):
+            Number of neighborhood offsets to use, default is 8.
+        
+        mongo_port (``integer``):
+            Port number where a MongoDB server instance is listening.
+        
+        db_name (``string``):
+            Name of the specified MongoDB database to use at the RAG.
+
         seeded (``bool``):
             Flag to determine whether or not to create seeded Mutex fragments.
 
-        sample_name (``str``):
-            A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name.
+        nworkers_correct (``integer``):
+            Number of distributed workers to run the Daisy parallel skeleton correction task with.
+        
+        n_chunk_write_correct (``integer``):
+            Number of chunks to write for each Daisy block in the skeleton correction task.
+
+        erode_iterations (``integer``):
+            Number of iterations to erode/dialate agglomerated fragments.
+
+        erode_footprint (``np.ndarray``):
+            Numpy array denoting a ball of a given radius to erode segments by.
+
+        alternate_dilate (``bool``):
+            Flag that will allow for alterate erosions/dialations during segmentation.
+
+        dialate_footprint (``np.ndarray``):
+            Numpy array denoting a ball of a given radius to dialate segments by.
 
     Returns:
         ``bool``:
@@ -90,10 +144,19 @@ def run_corrected_segmentation_pipeline(
             fragments_file=fragments_file,
             fragments_dataset=fragments_dataset,
             context=context,
-            filter_val=filter_fragments,
+            filter_val=filter_val,
             seeds_file=seeds_file,
             seeds_dataset=seeds_dataset,
+            mask_file=mask_file,
+            mask_dataset=mask_dataset,
             training=True,
+            nworkers=nworkers_frags,
+            n_chunk_write=n_chunk_write_frags,
+            lr_bias_ratio=lr_bias_ratio,
+            adjacent_edge_bias=adjacent_edge_bias,
+            neighborhood_length=neighborhood_length,
+            mongo_port=mongo_port,
+            db_name=db_name,
         )
     else:
         success = success & blockwise_generate_mutex_fragments(
@@ -103,9 +166,20 @@ def run_corrected_segmentation_pipeline(
             fragments_file=fragments_file,
             fragments_dataset=fragments_dataset,
             context=context,
-            filter_val=filter_fragments,
+            filter_val=filter_val,
             seeds_file=None,
             seeds_dataset=None,
+            training=True,
+            mask_file=mask_file,
+            mask_dataset=mask_dataset,
+            training=True,
+            nworkers=nworkers_frags,
+            n_chunk_write=n_chunk_write_frags,
+            lr_bias_ratio=lr_bias_ratio,
+            adjacent_edge_bias=adjacent_edge_bias,
+            neighborhood_length=neighborhood_length,
+            mongo_port=mongo_port,
+            db_name=db_name,
         )
 
     success = success & skel_correct_segmentation(
@@ -115,6 +189,12 @@ def run_corrected_segmentation_pipeline(
         frag_name=fragments_dataset,
         seg_file=seg_file,
         seg_dataset=seg_dataset,
+        nworkers=nworkers_correct,
+        erode_iterations=erode_iterations,
+        erode_footprint=erode_footprint,
+        alternate_dilate=alternate_dilate,
+        dilate_footprint=dilate_footprint,
+        n_chunk_write=n_chunk_write_correct,
     )
 
     return success
