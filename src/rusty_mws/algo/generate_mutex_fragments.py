@@ -12,8 +12,8 @@ from funlib.persistence import open_ds, Array, graphs, prepare_ds
 from funlib.segment.arrays import relabel
 import pymongo
 
-from .utils import filter_fragments
-from .utils import neighborhood
+from ..utils import filter_fragments
+from ..utils import neighborhood
 
 logger: logging.Logger = logging.getLogger(__name__)
 
