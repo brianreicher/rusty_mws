@@ -7,7 +7,7 @@ from scipy.ndimage import measurements
 
 import pymongo
 import daisy
-from funlib.geometry import Coordinate
+from funlib.geometry import Coordinate, Roi
 from funlib.persistence import open_ds, Array, graphs
 from .utils import neighborhood
 
@@ -27,7 +27,7 @@ def blockwise_generate_supervoxel_edges(
     lr_bias_ratio: float = -0.175,
     neighborhood_length: int = 8,
 ) -> bool:
-    """Generates supervoxel edges and stores weighted edges in the MongoDB graph.
+    """Generates supervoxel edges and stores (u, v, adj, lr) weights in a RAG.
 
     Args:
         sample_name (``str``):
@@ -70,46 +70,46 @@ def blockwise_generate_supervoxel_edges(
 
     affs: Array = open_ds(affs_file, affs_dataset, mode="r")
 
-    chunk_shape = affs.chunk_shape[affs.n_channel_dims :]
+    chunk_shape: tuple = affs.chunk_shape[affs.n_channel_dims :]
 
     # task params
-    voxel_size = affs.voxel_size
-    read_roi_voxels = daisy.Roi((0, 0, 0), chunk_shape).grow(context, context)
-    write_roi_voxels = daisy.Roi((0, 0, 0), chunk_shape)
-    total_roi = affs.roi.grow(context * voxel_size, context * voxel_size)
+    voxel_size: tuple = affs.voxel_size
+    read_roi_voxels: Roi = Roi((0, 0, 0), chunk_shape).grow(context, context)
+    write_roi_voxels: Roi = Roi((0, 0, 0), chunk_shape)
+    total_roi: Roi = affs.roi.grow(context * voxel_size, context * voxel_size)
 
-    read_roi = read_roi_voxels * voxel_size
-    write_roi = write_roi_voxels * voxel_size
+    read_roi: Roi = read_roi_voxels * voxel_size
+    write_roi: Roi = write_roi_voxels * voxel_size
 
     fragments: Array = open_ds(fragments_file, fragments_dataset, mode="r+")
 
+    # open RAG DB
+    db_host: str = "mongodb://localhost:27017"
+    db_name: str = "seg"
+
+    logging.info("Opening MongoDBGraphProvider...")
+    rag_provider = graphs.MongoDbGraphProvider(
+        db_name=db_name,
+        host=db_host,
+        mode="r+",
+        directed=False,
+        nodes_collection=sample_name + "_nodes",
+        edges_collection=sample_name + "_edges_" + merge_function,
+        position_attribute=["center_z", "center_y", "center_x"],
+    )
+    logging.info("MongoDB Graph Provider opened")
+
+    # open block done DB
+    client = pymongo.MongoClient(db_host)
+    db = client[db_name]
+    completed_collection_name: str = f"{sample_name}_supervox_blocks_completed"
+    completed_collection = db[completed_collection_name]
+
     # worker func
     def generate_super_voxel_edges_worker(
-        block: daisy.Block, affs=affs, fragments=fragments
+        block: daisy.Block, affs=affs, fragments=fragments, rag_provider=rag_provider, completed_collection=completed_collection,
     ) -> tuple:
         try:
-            # open RAG DB
-            db_host: str = "mongodb://localhost:27017"
-            db_name: str = "seg"
-
-            logging.info("Opening MongoDBGraphProvider...")
-            rag_provider = graphs.MongoDbGraphProvider(
-                db_name=db_name,
-                host=db_host,
-                mode="r+",
-                directed=False,
-                nodes_collection=sample_name + "_nodes",
-                edges_collection=sample_name + "_edges_" + merge_function,
-                position_attribute=["center_z", "center_y", "center_x"],
-            )
-            logging.info("MongoDB Graph Provider opened")
-
-            # open block done DB
-            client = pymongo.MongoClient(db_host)
-            db = client[db_name]
-            completed_collection_name = f"{sample_name}_agglom_blocks_completed"
-            completed_collection = db[completed_collection_name]
-
             logger.info("getting block")
             start: float = time.time()
             logger.info(
@@ -159,7 +159,7 @@ def blockwise_generate_supervoxel_edges(
 
             # separate affinities and offsets by range
             adjacents: list = [offset for offset in offsets if max(offset) <= 1]
-            lr_offsets = offsets[len(adjacents) :]
+            lr_offsets: list = offsets[len(adjacents) :]
             affs, lr_affs = affs[: len(adjacents)], affs[len(adjacents) :]
             if lr_bias_ratio != 0:
                 for i, offset in enumerate(lr_offsets):
@@ -316,7 +316,7 @@ def blockwise_generate_supervoxel_edges(
             pass
 
     # create Daisy distributed task
-    task = daisy.Task(
+    task: daisy.Task = daisy.Task(
         "GenSupervoxelEdgesTask",
         total_roi=total_roi,
         read_roi=read_roi,
@@ -326,5 +326,5 @@ def blockwise_generate_supervoxel_edges(
     )
 
     # run task blockwise
-    ret = daisy.run_blockwise([task])
+    ret: bool = daisy.run_blockwise([task])
     return ret

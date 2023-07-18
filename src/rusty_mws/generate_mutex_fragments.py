@@ -7,7 +7,7 @@ from scipy.ndimage import gaussian_filter, measurements
 import daisy
 import mwatershed as mws
 
-from funlib.geometry import Coordinate
+from funlib.geometry import Coordinate, Roi
 from funlib.persistence import open_ds, Array, graphs, prepare_ds
 from funlib.segment.arrays import relabel
 import pymongo
@@ -37,7 +37,7 @@ def blockwise_generate_mutex_fragments(
     adjacent_edge_bias: float = -0.4,  # bias towards merging
     neighborhood_length: int = 12,
 ) -> bool:
-    """Generates Mutex Watershed fragments and saves fragment nodes & weights in a graph.
+    """Generates MWS fragments and saves nodes & weights in a RAG.
 
     Args:
         sample_name (``str``):
@@ -100,34 +100,33 @@ def blockwise_generate_mutex_fragments(
     logger.info(f"Experiment name: {sample_name}")
 
     affs: Array = open_ds(affs_file, affs_dataset, mode="r")
-    chunk_shape = np.array(affs.chunk_shape[affs.n_channel_dims :])
-    num_voxels_in_block = np.prod(chunk_shape * n_chunk_write)
+    chunk_shape: np.ndarray = np.array(affs.chunk_shape[affs.n_channel_dims :])
+    num_voxels_in_block: np.ndarray = np.prod(chunk_shape * n_chunk_write)
 
     # new task params
-    voxel_size = affs.voxel_size
+    voxel_size: tuple = affs.voxel_size
 
-    read_roi_voxels = daisy.Roi((0, 0, 0), chunk_shape * n_chunk_write).grow(
+    read_roi_voxels: Roi = Roi((0, 0, 0), chunk_shape * n_chunk_write).grow(
         context, context
     )
 
-    write_roi_voxels = daisy.Roi((0, 0, 0), chunk_shape * n_chunk_write)
+    write_roi_voxels: Roi = Roi((0, 0, 0), chunk_shape * n_chunk_write)
 
-    total_roi_ds = affs.roi.grow(-context * voxel_size, -context * voxel_size)
+    total_roi_ds: Roi = affs.roi.grow(-context * voxel_size, -context * voxel_size)
 
     # Make total_roi_ds and even multiple of chunk_shape
     total_roi_ds = total_roi_ds.snap_to_grid(chunk_shape * voxel_size, mode="shrink")
 
     # Add context to total_roi_ds for daisy
-    # total_roi_daisy = affs.roi
     total_roi_daisy = total_roi_ds.grow(context * voxel_size, context * voxel_size)
 
-    read_roi = read_roi_voxels * voxel_size
+    read_roi: Roi = read_roi_voxels * voxel_size
 
-    write_roi = write_roi_voxels * voxel_size
+    write_roi: Roi = write_roi_voxels * voxel_size
 
     logger.info("writing fragments to %s", fragments_file)
 
-    prepare_ds(
+    fragments_prep: Array = prepare_ds(
         filename=fragments_file,
         ds_name=fragments_dataset,
         total_roi=total_roi_ds,
@@ -135,6 +134,7 @@ def blockwise_generate_mutex_fragments(
         dtype=np.uint64,
         delete=True,
     )
+
     fragments_ds: Array = open_ds(fragments_file, fragments_dataset, mode="r+")
 
     if mask_file is not None:
@@ -179,10 +179,10 @@ def blockwise_generate_mutex_fragments(
         # open block done DB
         mongo_client = pymongo.MongoClient(db_host)
         db = mongo_client[db_name]
-        blocks_extracted = db[f"{sample_name}_fragment_blocks_extracted"]
+        completed_collection = db[f"{sample_name}_fragment_blocks_extracted"]
     else:
         rag_provider = None
-        blocks_extracted = None
+        completed_collection = None
     logger.info("Generating fragments . . .")
 
     # worker func
@@ -193,7 +193,7 @@ def blockwise_generate_mutex_fragments(
         context=context,
         fragments_out=fragments_ds,
         rag_provider=rag_provider,
-        blocks_extracted=blocks_extracted,
+        completed_collection=completed_collection,
         training=training,
     ) -> bool:
         start: float = time.time()
@@ -275,14 +275,14 @@ def blockwise_generate_mutex_fragments(
         if filter_val > 0.0:
             filter_fragments(these_affs, fragments_data, filter_val)
 
-        fragments = Array(fragments_data, these_affs.roi, these_affs.voxel_size)
+        fragments: Array = Array(fragments_data, these_affs.roi, these_affs.voxel_size)
 
         logger.info("Cropping Fragments")
 
         # crop fragments to write_roi
         fragments = fragments[block.write_roi]
         fragments.materialize()
-        max_id = fragments.data.max()
+        max_id: int = fragments.data.max()
 
         fragments.data, max_id = relabel(fragments.data)
         assert max_id < num_voxels_in_block
@@ -291,7 +291,7 @@ def blockwise_generate_mutex_fragments(
             return
 
         # ensure unique IDs
-        id_bump = block.block_id[1] * num_voxels_in_block
+        id_bump: int = block.block_id[1] * num_voxels_in_block
         logger.info("bumping fragment IDs by %i", id_bump)
         fragments.data[fragments.data > 0] += id_bump
         fragment_ids = range(1 + id_bump, max_id + 1 + id_bump)
@@ -334,7 +334,7 @@ def blockwise_generate_mutex_fragments(
             }
 
             # add block to completed graph
-            blocks_extracted.insert_one(document=document)
+            completed_collection.insert_one(document=document)
 
             logger.info(f"block information: {document}")
         logger.info(f"releasing block: {block}")
@@ -343,7 +343,7 @@ def blockwise_generate_mutex_fragments(
         return True
 
     # create Daisy distributed task
-    task = daisy.Task(
+    task: daisy.Task = daisy.Task(
         "MutexFragmentsTask",
         total_roi=total_roi_daisy,
         read_roi=read_roi,

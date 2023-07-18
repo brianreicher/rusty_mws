@@ -28,7 +28,7 @@ class CorrectedSegTest(unittest.TestCase):
         )
 
         self.assertEqual(first=task_completion, second=True)
-    
+
     def test_global_agglom(self) -> None:
         task_completion: bool = rusty_mws.global_mutex_agglomeration(
             sample_name="test",
@@ -37,7 +37,7 @@ class CorrectedSegTest(unittest.TestCase):
         )
 
         self.assertEqual(first=task_completion, second=True)
-    
+
     def test_global_agglom(self) -> None:
         task_completion: bool = rusty_mws.extract_segmentation(
             fragments_file="../data/raw_predictions.zarr",
@@ -45,7 +45,7 @@ class CorrectedSegTest(unittest.TestCase):
         )
 
         self.assertEqual(first=task_completion, second=True)
-    
+
     def test_full_pred_segmentation_pipeline(self) -> None:
         task_completion: bool = rusty_mws.run_pred_segmentation_pipeline(
             affs_file="../data/raw_predictions.zarr",

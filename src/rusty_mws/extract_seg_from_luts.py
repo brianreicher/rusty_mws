@@ -4,6 +4,8 @@ import numpy as np
 import os
 import time
 from funlib.segment.arrays import replace_values
+from funlib.persistence import open_ds, Array, prepare_ds
+from funlib.geometry import Roi
 
 
 logging.getLogger().setLevel(logging.INFO)
@@ -39,29 +41,28 @@ def extract_segmentation(
             The number of unique segment IDs in the final segmentation.
     """
 
-    lut_dir = os.path.join(fragments_file, "luts_full")
+    lut_dir: str = os.path.join(fragments_file, "luts_full")
 
-    fragments = daisy.open_ds(fragments_file, fragments_dataset)
+    fragments: Array = open_ds(fragments_file, fragments_dataset)
 
-    # block_size = fragments.roi.shape
-    voxel_size = fragments.voxel_size
+    voxel_size: tuple = fragments.voxel_size
 
-    total_roi = fragments.roi
-    chunk_shape = np.array(fragments.chunk_shape)
+    total_roi: Roi = fragments.roi
+    chunk_shape: np.ndarray = np.array(fragments.chunk_shape)
 
-    read_roi_voxels = daisy.Roi((0, 0, 0), chunk_shape * n_chunk_write)
-    write_roi_voxels = read_roi_voxels
+    read_roi_voxels: Roi = Roi((0, 0, 0), chunk_shape * n_chunk_write)
+    write_roi_voxels: Roi = read_roi_voxels
 
-    read_roi = read_roi_voxels * voxel_size
-    write_roi = write_roi_voxels * voxel_size
+    read_roi: Roi = read_roi_voxels * voxel_size
+    write_roi: Roi = write_roi_voxels * voxel_size
 
     logging.info("Preparing segmentation dataset...")
 
-    seg_name = f"pred_seg"
+    seg_name: str = f"pred_seg"
 
-    start = time.time()
+    start: float = time.time()
 
-    segmentation = daisy.prepare_ds(
+    segmentation: Array = prepare_ds(
         fragments_file,
         seg_name,
         fragments.roi,
@@ -71,22 +72,22 @@ def extract_segmentation(
         delete=True,
     )
 
-    lut_filename = f"seg_{merge_function}"
+    lut_filename: str = f"seg_{merge_function}"
 
-    lut = os.path.join(lut_dir, lut_filename + ".npz")
+    lut: str = os.path.join(lut_dir, lut_filename + ".npz")
 
     assert os.path.exists(lut), f"{lut} does not exist"
 
     logging.info("Reading fragment-segment LUT...")
 
-    lut = np.load(lut)["fragment_segment_lut"]
+    lut: np.ndarray = np.load(lut)["fragment_segment_lut"]
 
     logging.info(f"Found {len(lut[0])} fragments in LUT")
 
-    num_segments = len(np.unique(lut[1]))
+    num_segments: int = len(np.unique(lut[1]))
     logging.info(f"Relabelling fragments to {num_segments} segments")
 
-    task = daisy.Task(
+    task: daisy.Task = daisy.Task(
         "ExtractSegmentationTask",
         total_roi,
         read_roi,
@@ -107,20 +108,20 @@ def extract_segmentation(
     return num_segments
 
 
-def segment_in_block(block: daisy.Block, segmentation, fragments, lut):
+def segment_in_block(block: daisy.Block, segmentation, fragments, lut) -> bool:
     logging.info("Copying fragments to memory...")
 
     # load fragments
-    fragments = fragments.to_ndarray(block.read_roi)
+    fragments: np.ndarray = fragments.to_ndarray(block.read_roi)
 
     # replace values, write to empty array
-    relabelled = np.zeros_like(fragments)
+    relabelled: np.ndarray = np.zeros_like(fragments)
     old_vals: np.ndarray = np.array(lut[0], dtype=np.uint64)
     new_vals: np.ndarray = np.array(lut[1], dtype=np.uint64)
     assert old_vals.dtype == new_vals.dtype == fragments.dtype
 
     logging.info("Relabelling . . .")
-    relabelled = replace_values(fragments, old_vals, new_vals, out_array=relabelled)
+    relabelled: np.ndarray = replace_values(fragments, old_vals, new_vals, out_array=relabelled)
 
     segmentation[block.write_roi] = relabelled
     return True
