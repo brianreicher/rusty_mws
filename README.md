@@ -53,7 +53,7 @@ pp: rusty_mws.PostProcessor = rusty_mws.PostProcessor(
             affs_file="../data/raw_predictions.zarr",
             affs_dataset="pred_affs_latest",
         )
-pp.run_corrected_segmentation_pipeline()
+pp.run_pred_segmentation_pipeline()
 ```
 where:
 * `affs_file` is a path (relative or absolute) to the zarr file containing predicted affinities to generate fragments for.
@@ -67,7 +67,7 @@ pp: rusty_mws.PostProcessor = rusty_mws.PostProcessor.(
             seeds_file="../data/raw_predictions.zarr",
             seeds_dataset="training_gt_rasters",
         )
-pp.run_pred_segmentation_pipeline()
+pp.run_corrected_segmentation_pipeline()
 ```
 where:
 * `affs_file` is a path (relative or absolute) to the zarr file containing predicted affinities to generate fragments for.
