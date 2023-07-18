@@ -11,12 +11,12 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 
 def skel_correct_segmentation(
-    seeds_file: str = "../../data/xpress-challenge.zarr",
-    seeds_dataset: str = "volumes/validation_gt_rasters",
-    fragments_file: str = "./raw_predictions.zarr",
-    fragments_dataset: str = "frags",
-    seg_file: str = "./raw_predictions.zarr",
-    seg_dataset: str = "pred_seg",
+    seeds_file: str,
+    seeds_dataset: str,
+    fragments_file: str,
+    fragments_dataset: str,
+    seg_file: str,
+    seg_dataset: str,
     nworkers: int = 25,
     erode_iterations: int = 0,
     erode_footprint: np.ndarray = ball(radius=5),
@@ -76,17 +76,17 @@ def skel_correct_segmentation(
 
     # task params
     voxel_size: Coordinate = frags.voxel_size
-    read_roi_voxels = daisy.Roi(
+    read_roi_voxels: Roi = Roi(
         offset=(0, 0, 0), shape=chunk_shape * n_chunk_write
     )  # TODO: may want to add context here
-    write_roi_voxels = daisy.Roi(offset=(0, 0, 0), shape=chunk_shape * n_chunk_write)
-    total_roi = frags.roi
+    write_roi_voxels: Roi = Roi(offset=(0, 0, 0), shape=chunk_shape * n_chunk_write)
+    total_roi: Roi = frags.roi
     dtype = frags.dtype
     read_roi: Roi = read_roi_voxels * voxel_size
     write_roi: Roi = write_roi_voxels * voxel_size
 
     # setup output zarr
-    seg_ds = prepare_ds(
+    seg_ds: Array = prepare_ds(
         filename=seg_file,
         ds_name=seg_dataset,
         total_roi=total_roi,
@@ -96,7 +96,7 @@ def skel_correct_segmentation(
     )
 
     # setup labels_mask zarr
-    ds = prepare_ds(
+    ds: Array = prepare_ds(
         seg_file,
         "pred_labels_mask",
         total_roi=total_roi,
@@ -106,7 +106,7 @@ def skel_correct_segmentation(
     )
 
     # setup unlabelled_mask zarr
-    ds = prepare_ds(
+    ds: Array = prepare_ds(
         seg_file,
         ds_name="pred_unlabelled_mask",
         total_roi=total_roi,
@@ -147,18 +147,18 @@ def skel_correct_segmentation(
         seg_ds[block.write_roi] = seg_array
 
         # Now make labels mask
-        labels_mask = np.ones_like(seg_array).astype(np.uint8)
-        labels_mask_ds = open_ds(seg_file, "pred_labels_mask", mode="a")
+        labels_mask: np.ndarray = np.ones_like(seg_array).astype(np.uint8)
+        labels_mask_ds: Array = open_ds(seg_file, "pred_labels_mask", mode="a")
         labels_mask_ds[block.write_roi] = labels_mask
 
         # Now make the unlabelled mask
-        unlabelled_mask = (seg_array > 0).astype(np.uint8)
-        unlabelled_mask_ds = open_ds(seg_file, "pred_unlabelled_mask", mode="a")
+        unlabelled_mask: np.ndarray = (seg_array > 0).astype(np.uint8)
+        unlabelled_mask_ds: Array = open_ds(seg_file, "pred_unlabelled_mask", mode="a")
         unlabelled_mask_ds[block.write_roi] = unlabelled_mask
         return True
 
     # create task
-    task = daisy.Task(
+    task: daisy.Task = daisy.Task(
         task_id="UpdateSegTask",
         total_roi=total_roi,
         read_roi=read_roi,

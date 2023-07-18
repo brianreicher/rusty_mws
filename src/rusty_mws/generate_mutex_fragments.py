@@ -36,6 +36,8 @@ def blockwise_generate_mutex_fragments(
     lr_bias_ratio: float = -0.175,
     adjacent_edge_bias: float = -0.4,  # bias towards merging
     neighborhood_length: int = 12,
+    mongo_port: int = 27017,
+    db_name: str = "seg",
 ) -> bool:
     """Generates MWS fragments and saves nodes & weights in a RAG.
 
@@ -90,7 +92,13 @@ def blockwise_generate_mutex_fragments(
 
         neighborhood_length (``integer``):
             Number of neighborhood offsets to use, default is 8.
-
+        
+        mongo_port (``integer``):
+            Port number where a MongoDB server instance is listening.
+        
+        db_name (``string``):
+            Name of the specified MongoDB database to use at the RAG.
+        
         Returns:
             ``bool``:
                 Returns ``true`` if all Daisy tasks complete successfully.
@@ -151,8 +159,7 @@ def blockwise_generate_mutex_fragments(
 
     if not training:
         # open RAG DB
-        db_host: str = "mongodb://localhost:27017"
-        db_name: str = "seg"
+        db_host: str = f"mongodb://localhost:{mongo_port}"
 
         mongo_drop = pymongo.MongoClient(db_host)[db_name]
         collection_names = mongo_drop.list_collection_names()

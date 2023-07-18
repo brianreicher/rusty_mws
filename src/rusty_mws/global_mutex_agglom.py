@@ -4,7 +4,8 @@ import time
 
 import numpy as np
 import mwatershed as mws
-from funlib.persistence import open_ds, graphs
+from funlib.geometry import Roi
+from funlib.persistence import open_ds, graphs, Array
 
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -15,10 +16,12 @@ def global_mutex_agglomeration(
     fragments_file: str,
     fragments_dataset,
     merge_function: str = "mwatershed",
-    adj_bias: float = 7.0,
+    adj_bias: float = .1,
     lr_bias: float = -1.2,
+    mongo_port: int = 27017,
+    db_name: str = "seg",
 ) -> bool:
-    """Performs global agglomeration on the MWS fragments in file, reading and storing new segment IDs in a LUT.
+    """Performs global agglomeration on stored MWS fragments, writing new segment IDs into a LUT for relabeling.
 
     Args:
         sample_name (``str``):
@@ -38,17 +41,21 @@ def global_mutex_agglomeration(
 
         lr_bias (``float``):
             Amount to bias long-range pixel weights when computing segmentation from the stored graph.
-
-
+        
+        mongo_port (``integer``):
+            Port number where a MongoDB server instance is listening.
+        
+        db_name (``string``):
+            Name of the specified MongoDB database to use at the RAG.
+    
     Returns:
         ``bool``:
             Returns ``true`` if all Daisy tasks complete successfully.
     """
 
-    db_host: str = "mongodb://localhost:27017"
-    db_name: str = "seg"
+    db_host: str = f"mongodb://localhost:{mongo_port}"
     print("Reading graph from DB ", db_name)
-    start = time.time()
+    start: float = time.time()
 
     graph_provider = graphs.MongoDbGraphProvider(
         db_name,
@@ -62,11 +69,11 @@ def global_mutex_agglomeration(
 
     print("Got Graph provider")
 
-    fragments = open_ds(fragments_file, fragments_dataset)
+    fragments: Array = open_ds(fragments_file, fragments_dataset)
 
     print("Opened fragments")
 
-    roi = fragments.roi
+    roi: Roi = fragments.roi
 
     print("Getting graph for roi %s" % roi)
 
@@ -168,8 +175,8 @@ def segment(
 
     print("%.3fs" % (time.time() - start))
 
-    lookup = "seg_%s" % (merge_function)
-    lookup = lookup.replace("/", "-")
+    lookup: str = "seg_%s" % (merge_function)
+    lookup: str = lookup.replace("/", "-")
 
     out_file: str = os.path.join(out_dir, lookup)
     np.savez_compressed(out_file, fragment_segment_lut=lut, edges=edges)

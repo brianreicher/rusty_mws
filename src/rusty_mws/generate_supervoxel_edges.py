@@ -26,6 +26,8 @@ def blockwise_generate_supervoxel_edges(
     merge_function: str = "mwatershed",
     lr_bias_ratio: float = -0.175,
     neighborhood_length: int = 8,
+    mongo_port: int = 27017,
+    db_name: str = "seg",
 ) -> bool:
     """Generates supervoxel edges and stores (u, v, adj, lr) weights in a RAG.
 
@@ -60,6 +62,11 @@ def blockwise_generate_supervoxel_edges(
         neighborhood_length (``integer``):
             Number of neighborhood offsets to use, default is 8.
 
+        mongo_port (``integer``):
+            Port number where a MongoDB server instance is listening.
+        
+        db_name (``string``):
+            Name of the specified MongoDB database to use at the RAG.
 
     Returns:
         ``bool``:
@@ -84,8 +91,7 @@ def blockwise_generate_supervoxel_edges(
     fragments: Array = open_ds(fragments_file, fragments_dataset, mode="r+")
 
     # open RAG DB
-    db_host: str = "mongodb://localhost:27017"
-    db_name: str = "seg"
+    db_host: str = f"mongodb://localhost:{mongo_port}"
 
     logging.info("Opening MongoDBGraphProvider...")
     rag_provider = graphs.MongoDbGraphProvider(
