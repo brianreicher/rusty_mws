@@ -25,7 +25,7 @@ def blockwise_generate_supervoxel_edges(
     nworkers: int = 20,
     merge_function: str = "mwatershed",
     lr_bias_ratio: float = -0.175,
-    neighborhood_length: int = 8,
+    neighborhood_length: int = 12,
     mongo_port: int = 27017,
     db_name: str = "seg",
 ) -> bool:
@@ -60,7 +60,7 @@ def blockwise_generate_supervoxel_edges(
             Ratio at which to tweak the lr shift in offsets.
 
         neighborhood_length (``integer``):
-            Number of neighborhood offsets to use, default is 8.
+            Number of neighborhood offsets to use, default is 12.
 
         mongo_port (``integer``):
             Port number where a MongoDB server instance is listening.

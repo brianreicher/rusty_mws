@@ -91,7 +91,7 @@ def blockwise_generate_mutex_fragments(
             Weight base at which to bias adjacent edges.
 
         neighborhood_length (``integer``):
-            Number of neighborhood offsets to use, default is 8.
+            Number of neighborhood offsets to use, default is 12.
         
         mongo_port (``integer``):
             Port number where a MongoDB server instance is listening.
