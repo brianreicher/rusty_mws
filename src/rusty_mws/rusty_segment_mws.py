@@ -3,6 +3,7 @@ import time
 import os
 from funlib.geometry import Coordinate
 from typing import Optional
+
 from algo.generate_mutex_fragments import *
 from algo.generate_supervoxel_edges import *
 from algo.global_mutex_agglom import *
@@ -22,31 +23,38 @@ class PostProcessor():
         affs_dataset (str):
             The name of the affinities dataset in the affs_file to read from.
 
-        fragments_file (str):
-            Path (relative or absolute) to the zarr file to write fragments to.
-
-        fragments_dataset (str):
-            The name of the fragments dataset to read/write to in the fragments_file.
-
-        seeds_file (str):
-            Path (relative or absolute) to the zarr file containing seeds.
-
-        seeds_dataset (str):
-            The name of the seeds dataset in the seeds file to read from.
-        
-        seg_file (str):
-            Path (relative or absolute) to the zarr file to write fragments to.
-
-        seg_dataset (str):
-            The name of the segmentation dataset to write to.
-
-        context (daisy.Coordinate):
+        context (daisy.Coordinate, optional):
             A coordinate object (3-dimensional) denoting how much contextual space to grow for the total volume ROI.
-        
+            Defaults to a Coordinate of the maximum absolute value of the neighborhood if ``None``.
+
         sample_name (str, optional):
             A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name.
             Default is None.
+        
+        fragments_file (str, optional):
+            Path (relative or absolute) to the zarr file to write fragments to.
+            Default is "", which sets the file to the same as the given ``affs_file``.
 
+        fragments_dataset (str, optional):
+            The name of the fragments dataset to read/write to in the fragments_file.
+            Default is "frags."
+        
+        seg_file (str, optional):
+            Path (relative or absolute) to the zarr file to write fragments to.
+            Default is "", which sets the file to the same as the given ``affs_file``.
+        
+        seg_dataset (str, optional):
+            The name of the segmentation dataset to write to.
+            Default is "seg."
+
+        seeds_file (str, optional):
+            Path (relative or absolute) to the zarr file containing seeds.
+            Default is None.
+
+        seeds_dataset (str, optional):
+            The name of the seeds dataset in the seeds file to read from.
+            Default is None.
+        
         mask_file (str, optional):
             Path (relative or absolute) to the zarr file containing the mask.
             Default is None.
@@ -143,14 +151,14 @@ class PostProcessor():
     def __init__(self,    
                 affs_file: str,
                 affs_dataset: str,
-                fragments_file: str,
-                fragments_dataset,
-                seeds_file: str,
-                seeds_dataset: str,
-                seg_file: str,
-                seg_dataset: str,
-                context: Coordinate,
-                sample_name:Optional[str]=None,
+                context: Optional[Coordinate] = None,
+                sample_name:Optional[str] = None,
+                fragments_file: Optional[str] = "",
+                fragments_dataset: Optional[str] = "frags",
+                seg_file: Optional[str] = "",
+                seg_dataset: Optional[str] = "seg",
+                seeds_file: Optional[str]=None,
+                seeds_dataset: Optional[str]=None,
                 mask_file: Optional[str] = None,
                 mask_dataset: Optional[str] = None,
                 filter_val: Optional[float] = 0.5,
@@ -178,17 +186,31 @@ class PostProcessor():
         # dataset vars
         self.affs_file: str = affs_file
         self.affs_dataset: str = affs_dataset
-        self.fragments_file: str = fragments_file
+
+        if fragments_file is "":
+            self.fragments_file = affs_file
+        else:
+            self.fragments_file: str = fragments_file
+
         self.fragments_dataset: str = fragments_dataset
         self.seeds_file: str = seeds_file
         self.seeds_dataset: str = seeds_dataset
-        self.seg_file: str = seg_file
+
+        if seg_file is "":
+            self.seg_file = affs_file
+        else:
+            self.seg_file: str = seg_file
+
         self.seg_dataset: str = seg_dataset
         self.mask_file: str = mask_file
         self.mask_dataset: str = mask_dataset
 
         # dataset processing vars
-        self.context: Coordinate = context
+        if context is not None:
+            self.context: Coordinate = context
+        else:
+            self.context: Coordinate = Coordinate(np.max(a=np.abs(neighborhood[:neighborhood_length]), axis=0))
+        
         self.filter_val: float = filter_val
         self.seeded: bool = seeded
         self.merge_function: str = merge_function
