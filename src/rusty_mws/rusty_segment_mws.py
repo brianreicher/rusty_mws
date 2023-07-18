@@ -15,100 +15,129 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 class PostProcessor():
     """Driver for post-processing segmentation.
 
-        Args:
-            affs_file (``str``):
-                Path (relative or absolute) to the zarr file containing predicted affinities to generate fragments for.
+    Args:
+        affs_file (str):
+            Path (relative or absolute) to the zarr file containing predicted affinities to generate fragments for.
 
-            affs_dataset (``str``):
-                The name of the affinities dataset in the affs_file to read from.
+        affs_dataset (str):
+            The name of the affinities dataset in the affs_file to read from.
 
-            fragments_file (``str``):
-                Path (relative or absolute) to the zarr file to write fragments to.
+        fragments_file (str):
+            Path (relative or absolute) to the zarr file to write fragments to.
 
-            fragments_dataset (``str``):
-                The name of the fragments dataset to read/write to in the fragments_file.
+        fragments_dataset (str):
+            The name of the fragments dataset to read/write to in the fragments_file.
 
-            seeds_file (``str``):
-                Path (relative or absolute) to the zarr file containing seeds.
+        seeds_file (str):
+            Path (relative or absolute) to the zarr file containing seeds.
 
-            seeds_dataset (``str``):
-                The name of the seeds dataset in the seeds file to read from.
-            
-            seg_file (``str``):
-                Path (relative or absolute) to the zarr file to write fragments to.
+        seeds_dataset (str):
+            The name of the seeds dataset in the seeds file to read from.
+        
+        seg_file (str):
+            Path (relative or absolute) to the zarr file to write fragments to.
 
-            seg_dataset (``str``):
-                The name of the segmentation dataset to write to.
+        seg_dataset (str):
+            The name of the segmentation dataset to write to.
 
-            context (``daisy.Coordinate``):
-                A coordinate object (3-dimensional) denoting how much contextual space to grow for the total volume ROI.
-            
-            sample_name (``str``):
-                A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name.
+        context (daisy.Coordinate):
+            A coordinate object (3-dimensional) denoting how much contextual space to grow for the total volume ROI.
+        
+        sample_name (str, optional):
+            A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name.
+            Default is None.
 
-            filter_val (``float``):
-                The amount for which fragments will be filtered if their average falls below said value.
+        mask_file (str, optional):
+            Path (relative or absolute) to the zarr file containing the mask.
+            Default is None.
 
-            nworkers_frags (``integer``):
-                Number of distributed workers to run the Daisy parallel fragment task with.
-            
-            n_chunk_write_frags (``integer``):
-                Number of chunks to write for each Daisy block in the fragment task.
+        mask_dataset (str, optional):
+            The name of the mask dataset in the mask_file to read from.
+            Default is None.
 
-            lr_bias_ratio (``float``):
-                Ratio at which to tweak the lr shift in offsets.
+        filter_val (float, optional):
+            The amount for which fragments will be filtered if their average falls below said value.
+            Default is 0.5.
 
-            adjacent_edge_bias (``float``):
-                Weight base at which to bias adjacent edges.
+        nworkers_frags (int, optional):
+            Number of distributed workers to run the Daisy parallel fragment task with.
+            Default is 10.
 
-            neighborhood_length (``integer``):
-                Number of neighborhood offsets to use, default is 8.
-            
-            mongo_port (``integer``):
-                Port number where a MongoDB server instance is listening.
-            
-            db_name (``string``):
-                Name of the specified MongoDB database to use at the RAG.
+        n_chunk_write_frags (int, optional):
+            Number of chunks to write for each Daisy block in the fragment task.
+            Default is 2.
 
-            seeded (``bool``):
-                Flag to determine whether or not to create seeded Mutex fragments.
+        lr_bias_ratio (float, optional):
+            Ratio at which to tweak the lr shift in offsets.
+            Default is -0.175.
 
-            nworkers_correct (``integer``):
-                Number of distributed workers to run the Daisy parallel skeleton correction task with.
-            
-            n_chunk_write_correct (``integer``):
-                Number of chunks to write for each Daisy block in the skeleton correction task.
+        adjacent_edge_bias (float, optional):
+            Weight base at which to bias adjacent edges.
+            Default is -0.4.
 
-            erode_iterations (``integer``):
-                Number of iterations to erode/dialate agglomerated fragments.
+        neighborhood_length (int, optional):
+            Number of neighborhood offsets to use, default is 8.
+            Default is 12.
 
-            erode_footprint (``np.ndarray``):
-                Numpy array denoting a ball of a given radius to erode segments by.
+        mongo_port (int, optional):
+            Port number where a MongoDB server instance is listening.
+            Default is 27017.
 
-            alternate_dilate (``bool``):
-                Flag that will allow for alterate erosions/dialations during segmentation.
+        db_name (str, optional):
+            Name of the specified MongoDB database to use at the RAG.
+            Default is "seg".
 
-            dialate_footprint (``np.ndarray``):
-                Numpy array denoting a ball of a given radius to dialate segments by.
-            
-            adj_bias (``float``):
-                Amount to bias adjacent pixel weights when computing segmentation from the stored graph.
+        seeded (bool, optional):
+            Flag to determine whether or not to create seeded Mutex fragments.
+            Default is True.
 
-            lr_bias (``float``):
-                Amount to bias long-range pixel weights when computing segmentation from the stored graph.
+        nworkers_correct (int, optional):
+            Number of distributed workers to run the Daisy parallel skeleton correction task with.
+            Default is 25.
 
-            nworkers_supervox (``integer``):
-                Number of distributed workers to run the Daisy parallel supervoxel task with.
-            
-            merge_function (``str``):
-                Name of the segmentation algorithm used to denote in the MongoDB edge collection.
-            
-            nworkers_lut (``integer``):
-                Number of distributed workers to run the Daisy parallel LUT extraction task with.
+        n_chunk_write_correct (int, optional):
+            Number of chunks to write for each Daisy block in the skeleton correction task.
+            Default is 1.
 
-            n_chunk_write_lut (``integer``):
-                Number of chunks to write for each Daisy block in the LUT extraction task.
+        erode_iterations (int, optional):
+            Number of iterations to erode/dilate agglomerated fragments.
+            Default is 0.
 
+        erode_footprint (np.ndarray, optional):
+            Numpy array denoting a ball of a given radius to erode segments by.
+            Default is ball(radius=5).
+
+        alternate_dilate (bool, optional):
+            Flag that will allow for alternate erosions/dilations during segmentation.
+            Default is True.
+
+        dilate_footprint (np.ndarray, optional):
+            Numpy array denoting a ball of a given radius to dilate segments by.
+            Default is ball(radius=5).
+
+        adj_bias (float, optional):
+            Amount to bias adjacent pixel weights when computing segmentation from the stored graph.
+            Default is -0.1.
+
+        lr_bias (float, optional):
+            Amount to bias long-range pixel weights when computing segmentation from the stored graph.
+            Default is -1.5.
+
+        nworkers_supervox (int, optional):
+            Number of distributed workers to run the Daisy parallel supervoxel task with.
+            Default is 25.
+
+        merge_function (str, optional):
+            Name of the segmentation algorithm used to denote in the MongoDB edge collection.
+            Default is "mwatershed".
+
+        nworkers_lut (int, optional):
+            Number of distributed workers to run the Daisy parallel LUT extraction task with.
+            Default is 25.
+
+        n_chunk_write_lut (int, optional):
+            Number of chunks to write for each Daisy block in the LUT extraction task.
+            Default is 1.
     """
 
     def __init__(self,    
@@ -121,30 +150,30 @@ class PostProcessor():
                 seg_file: str,
                 seg_dataset: str,
                 context: Coordinate,
-                sample_name=None,
-                mask_file: str = None,
-                mask_dataset: str = None,
-                filter_val: float = 0.5,
-                nworkers_frags: int = 10,
-                n_chunk_write_frags: int = 2,
-                lr_bias_ratio: float = -0.175,
-                adjacent_edge_bias: float = -0.4,
-                neighborhood_length: int = 12,
-                mongo_port: int = 27017,
-                db_name: str = "seg",
-                seeded: bool = True,
-                nworkers_correct: int = 25,
-                n_chunk_write_correct: int = 1,
-                erode_iterations: int = 0,
-                erode_footprint: np.ndarray = ball(radius=5),
-                alternate_dilate: bool = True,
-                dilate_footprint: np.ndarray = ball(radius=5),
-                adj_bias: float = -0.1,
-                lr_bias: float = -1.5,
-                nworkers_supervox: int = 25,
-                merge_function: str = "mwatershed",
-                nworkers_lut: int = 25,
-                n_chunk_write_lut: int = 1,) -> None:
+                sample_name:Optional[str]=None,
+                mask_file: Optional[str] = None,
+                mask_dataset: Optional[str] = None,
+                filter_val: Optional[float] = 0.5,
+                nworkers_frags: Optional[int] = 10,
+                n_chunk_write_frags: Optional[int] = 2,
+                lr_bias_ratio: Optional[float] = -0.175,
+                adjacent_edge_bias: Optional[float] = -0.4,
+                neighborhood_length: Optional[int] = 12,
+                mongo_port: Optional[int] = 27017,
+                db_name: Optional[str] = "seg",
+                seeded: Optional[bool] = True,
+                nworkers_correct: Optional[int] = 25,
+                n_chunk_write_correct: Optional[int] = 1,
+                erode_iterations: Optional[int] = 0,
+                erode_footprint: Optional[np.ndarray] = ball(radius=5),
+                alternate_dilate: Optional[bool] = True,
+                dilate_footprint: Optional[np.ndarra] = ball(radius=5),
+                adj_bias: Optional[float] = -0.1,
+                lr_bias: Optional[float] = -1.5,
+                nworkers_supervox: Optional[int] = 25,
+                merge_function: Optional[str] = "mwatershed",
+                nworkers_lut: Optional[int] = 25,
+                n_chunk_write_lut: Optional[int] = 1,) -> None:
         
         # dataset vars
         self.affs_file: str = affs_file
