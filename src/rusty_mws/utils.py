@@ -38,7 +38,7 @@ def filter_fragments(
     replace_values(fragments_data, filtered_fragments, replace, inplace=True)
 
 
-# neighborhood offset values to read in pipeline parts
+# neighborhood offset values
 neighborhood: list[list[int]] = [
     [1, 0, 0],
     [0, 1, 0],

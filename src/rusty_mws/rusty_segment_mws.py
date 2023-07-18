@@ -221,12 +221,12 @@ def run_pred_segmentation_pipeline(
     return True
 
 
-def optimize_pred_segmentation(
+def optimize_pred_segmentation( # TODO: implement genetic optimization
     adj_bias: float,
     lr_bias: float,
-    sample_name: str = "htem4413041148969302336",
-    fragments_file: str = "./validation.zarr",
-    fragments_dataset: str = "frag_seg",
+    sample_name: str,
+    fragments_file: str,
+    fragments_dataset: str,
 ) -> bool:
     """Soley global agglomeration and segment extraction via Mutex Watershed - used to optimize weights during the global agglomeration step.
 
