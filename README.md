@@ -64,11 +64,8 @@ For seeded skeleton-corrected segmentation with Mutex Watershed fragments:
 pp: rusty_mws.PostProcessor = rusty_mws.PostProcessor.(
             affs_file="../data/raw_predictions.zarr",
             affs_dataset="pred_affs_latest",
-            fragments_file="../data/raw_predictions.zarr",
-            fragments_dataset="frag_seg",
             seeds_file="../data/raw_predictions.zarr",
             seeds_dataset="training_gt_rasters",
-            context=Coordinate(np.max(a=np.abs(rusty_mws.neighborhood), axis=0)),
         )
 pp.run_pred_segmentation_pipeline()
 ```
