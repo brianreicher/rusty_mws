@@ -11,34 +11,15 @@ from funlib.evaluate import rand_voi
 from .optimizer import Optimizer
 
 class GeneticOptimizer(Optimizer):
-    def evaluate_weight_biases(adj_bias, 
-                            lr_bias, 
-                            rasters, 
-                            seg_file, 
-                            seg_ds, 
-                            sample_name, 
-                            edges, 
-                            adj_scores, 
-                            lr_scores, 
-                            merge_function, 
-                            out_dir, 
-                            fragments_file, 
-                            fragments_dataset):
-        # Call the function that performs the agglomeration step with the given weight biases
-        segment(edges, adj_scores, lr_scores, merge_function, out_dir, adj_bias, lr_bias)
-        extract_segmentation(fragments_file, fragments_dataset, sample_name)
 
-        seg: Array = open_ds(filename=seg_file, ds_name=seg_ds)
+    def __init__(self, param_space:dict, adj_bias_range:tuple, lr_bias_range:tuple) -> None:
+        super().__init__(param_space)
 
-        seg: np.ndarray = seg.to_ndarray()
+        # set bias ranges
+        self.adj_bias_range: tuple = adj_bias_range
+        self.lr_bias_range: tuple = lr_bias_range
 
-        seg: np.ndarray = np.asarray(seg, dtype=np.uint64)
-        
-        score_dict: dict = rand_voi(rasters, seg, True)
-        print([score_dict[f"voi_split"], score_dict["voi_merge"]])
-        return np.mean(a=[score_dict[f"voi_split"], score_dict["voi_merge"]])
-
-
+    @staticmethod
     def crossover(parent1, parent2) -> tuple:
         # Perform crossover by blending the weight biases of the parents
         alpha = random.uniform(0.0, 1.0)  # Blend factor
@@ -52,7 +33,7 @@ class GeneticOptimizer(Optimizer):
 
         return adj_bias_child, lr_bias_child
 
-
+    @staticmethod
     def mutate(individual, mutation_rate=0.1, mutation_strength=0.1) -> tuple:
         # Perform mutation by adding random noise to the weight biases
         adj_bias, lr_bias = individual
@@ -137,7 +118,7 @@ class GeneticOptimizer(Optimizer):
             fitness_values = []
             for adj_bias, lr_bias in population:
                 print("BIASES:", adj_bias, lr_bias)
-                fitness = evaluate_weight_biases(adj_bias, lr_bias, rasters, seg_file,
+                fitness = self.evaluate_weight_biases(adj_bias, lr_bias, rasters, seg_file,
                                                 seg_ds, sample_name, edges, adj_scores,
                                                     lr_scores, merge_function, out_dir, fragments_file, fragments_dataset)
                 fitness_values.append((adj_bias, lr_bias, fitness))
@@ -176,3 +157,30 @@ class GeneticOptimizer(Optimizer):
         # Return the best weight biases found in the last generation
         best_biases = sorted(fitness_values, key=lambda x: x[2], reverse=True)[:len(population)]
         return best_biases
+
+    def evaluate_weight_biases(adj_bias, 
+                            lr_bias, 
+                            rasters, 
+                            seg_file, 
+                            seg_ds, 
+                            sample_name, 
+                            edges, 
+                            adj_scores, 
+                            lr_scores, 
+                            merge_function, 
+                            out_dir, 
+                            fragments_file, 
+                            fragments_dataset) -> np.floating:
+        # Call the function that performs the agglomeration step with the given weight biases
+        segment(edges, adj_scores, lr_scores, merge_function, out_dir, adj_bias, lr_bias)
+        extract_segmentation(fragments_file, fragments_dataset, sample_name)
+
+        seg: Array = open_ds(filename=seg_file, ds_name=seg_ds)
+
+        seg: np.ndarray = seg.to_ndarray()
+
+        seg: np.ndarray = np.asarray(seg, dtype=np.uint64)
+        
+        score_dict: dict = rand_voi(rasters, seg, True)
+        print([score_dict[f"voi_split"], score_dict["voi_merge"]])
+        return np.mean(a=[score_dict[f"voi_split"], score_dict["voi_merge"]])
