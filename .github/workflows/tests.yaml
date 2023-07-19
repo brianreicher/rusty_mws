@@ -1,0 +1,29 @@
+name: Test
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install boost
+        run: sudo apt install libboost-all-dev
+
+      - name: Install dependencies
+        run: pip install -r dev_requirments.txt
+
+      - name: Test with pytest
+        run: pytest tests

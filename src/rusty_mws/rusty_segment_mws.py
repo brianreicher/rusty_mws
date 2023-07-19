@@ -4,11 +4,11 @@ import os
 from funlib.geometry import Coordinate
 from typing import Optional
 
-from algo.generate_mutex_fragments import *
-from algo.generate_supervoxel_edges import *
-from algo.global_mutex_agglom import *
-from algo.extract_seg_from_luts import *
-from algo.skeleton_correct import *
+from .algo.generate_mutex_fragments import *
+from .algo.generate_supervoxel_edges import *
+from .algo.global_mutex_agglom import *
+from .algo.extract_seg_from_luts import *
+from .algo.skeleton_correct import *
 
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -187,7 +187,7 @@ class PostProcessor():
         self.affs_file: str = affs_file
         self.affs_dataset: str = affs_dataset
 
-        if fragments_file is "":
+        if fragments_file == "":
             self.fragments_file = affs_file
         else:
             self.fragments_file: str = fragments_file
@@ -196,7 +196,7 @@ class PostProcessor():
         self.seeds_file: str = seeds_file
         self.seeds_dataset: str = seeds_dataset
 
-        if seg_file is "":
+        if seg_file == "":
             self.seg_file = affs_file
         else:
             self.seg_file: str = seg_file
@@ -358,7 +358,6 @@ class PostProcessor():
                 filter_val=self.filter_val,
                 seeds_file=None,
                 seeds_dataset=None,
-                training=True,
                 mask_file=self.mask_file,
                 mask_dataset=self.mask_dataset,
                 training=False,

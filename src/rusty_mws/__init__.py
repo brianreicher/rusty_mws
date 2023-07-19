@@ -1,4 +1,4 @@
 from .rusty_segment_mws import PostProcessor
 from .utils import filter_fragments, neighborhood
-from .algo import *
-from .optim import *
+from . import algo
+from . import optim

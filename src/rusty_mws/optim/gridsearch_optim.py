@@ -1,13 +1,12 @@
 import random
 import time
 import numpy as np
-from rusty_mws.rusty_segment_mws import *
-from rusty_mws.global_mutex import segment
-from rusty_mws.extract_seg_from_luts import extract_segmentation
+from ..rusty_segment_mws import *
+from ..algo.global_mutex_agglom import segment
+from ..algo.extract_seg_from_luts import extract_segmentation
 from funlib.persistence import open_ds, graphs, Array
 import mwatershed as mws
 from tqdm import tqdm 
-from funlib.evaluate import rand_voi
 
 
 def grid_search(adj_bias_range:tuple, lr_bias_range:tuple, 
