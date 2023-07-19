@@ -6,14 +6,13 @@ import numpy as np
 
 class CorrectedSegTest(unittest.TestCase):
     def test_generate_fragments(self) -> None:
-        
-	task_completion: bool = rusty_mws.algo.blockwise_generate_mutex_fragments_task(
+        task_completion: bool = rusty_mws.blockwise_generate_mutex_fragments_task(
             sample_name="test",
             affs_file="../data/raw_predictions.zarr",
             affs_dataset="pred_affs_latest",
             fragments_file="../data/raw_predictions.zarr",
             fragments_dataset="frag_seg",
-            context=Coordinate(np.max(np.abs(rusty_mws.neighborhood[:12]), axis=0)),
+            context=Coordinate(np.max(np.abs(rusty_mws.neighborhood), axis=0)),
             seeds_file="../data/raw_predictions.zarr",
             seeds_dataset="training_gt_rasters",
             training=True,
@@ -33,14 +32,15 @@ class CorrectedSegTest(unittest.TestCase):
         self.assertEqual(first=task_completion, second=True)
 
     def test_corrected_segmentation_full(self) -> None:
-        pp: rusty_mws.PostProcessor = rusty_mws.PostProcessor.(
+        task_completion: bool = rusty_mws.run_corrected_segmentation_pipeline(
             affs_file="../data/raw_predictions.zarr",
             affs_dataset="pred_affs_latest",
+            fragments_file="../data/raw_predictions.zarr",
+            fragments_dataset="frag_seg",
             seeds_file="../data/raw_predictions.zarr",
             seeds_dataset="training_gt_rasters",
+            context=Coordinate(np.max(a=np.abs(rusty_mws.neighborhood), axis=0)),
         )
-	task_completion: bool = pp.run_corrected_segmentation_pipeline()
-
         self.assertEqual(first=task_completion, second=True)
 
 
