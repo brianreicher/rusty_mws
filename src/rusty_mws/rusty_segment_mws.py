@@ -358,7 +358,6 @@ class PostProcessor():
                 filter_val=self.filter_val,
                 seeds_file=None,
                 seeds_dataset=None,
-                training=True,
                 mask_file=self.mask_file,
                 mask_dataset=self.mask_dataset,
                 training=False,
