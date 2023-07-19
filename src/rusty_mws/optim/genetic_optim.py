@@ -6,7 +6,7 @@ from ..algo import segment, extract_segmentation
 from funlib.persistence import open_ds, graphs, Array
 import mwatershed as mws
 from tqdm import tqdm 
-from funlib.evaluate import rand_voi
+# from funlib.evaluate import rand_voi
 
 from .optimizer import Optimizer
 
@@ -181,6 +181,7 @@ class GeneticOptimizer(Optimizer):
 
         seg: np.ndarray = np.asarray(seg, dtype=np.uint64)
         
-        score_dict: dict = rand_voi(rasters, seg, True)
+        # score_dict: dict = rand_voi(rasters, seg, True)
+        score_dict: dict = {}
         print([score_dict[f"voi_split"], score_dict["voi_merge"]])
         return np.mean(a=[score_dict[f"voi_split"], score_dict["voi_merge"]])

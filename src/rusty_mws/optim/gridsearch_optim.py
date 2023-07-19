@@ -7,7 +7,6 @@ from ..algo.extract_seg_from_luts import extract_segmentation
 from funlib.persistence import open_ds, graphs, Array
 import mwatershed as mws
 from tqdm import tqdm 
-from funlib.evaluate import rand_voi
 
 
 def grid_search(adj_bias_range:tuple, lr_bias_range:tuple, 
