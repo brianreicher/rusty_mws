@@ -21,6 +21,9 @@ jobs:
 
       - name: Install boost
         run: sudo apt install libboost-all-dev
+        
+      - name: Install cython
+        run: pip install cython
 
       - name: Install eval tools
         run: conda install -c conda-forge -c ostrokach-forge -c pkgw-forge graph-tool
