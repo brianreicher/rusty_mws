@@ -123,10 +123,10 @@ def blockwise_generate_mutex_fragments(
     total_roi_ds: Roi = affs.roi.grow(-context * voxel_size, -context * voxel_size)
 
     # Make total_roi_ds and even multiple of chunk_shape
-    total_roi_ds = total_roi_ds.snap_to_grid(chunk_shape * voxel_size, mode="shrink")
+    total_roi_ds: Roi = total_roi_ds.snap_to_grid(chunk_shape * voxel_size, mode="shrink")
 
     # Add context to total_roi_ds for daisy
-    total_roi_daisy = total_roi_ds.grow(context * voxel_size, context * voxel_size)
+    total_roi_daisy: Roi = total_roi_ds.grow(context * voxel_size, context * voxel_size)
 
     read_roi: Roi = read_roi_voxels * voxel_size
 
