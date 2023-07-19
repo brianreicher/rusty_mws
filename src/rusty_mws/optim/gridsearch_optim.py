@@ -10,7 +10,7 @@ from tqdm import tqdm
 from funlib.evaluate import rand_voi
 
 
-def grid_search_optim(adj_bias_range:tuple, lr_bias_range:tuple, 
+def grid_search(adj_bias_range:tuple, lr_bias_range:tuple, 
                       sample_name:str="htem4413041148969302336", 
                       merge_function:str="mwatershed",
                       fragments_file:str="./validation.zarr",
