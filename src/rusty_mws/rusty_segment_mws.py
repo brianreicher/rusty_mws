@@ -4,11 +4,11 @@ import os
 from funlib.geometry import Coordinate
 from typing import Optional
 
-from algo.generate_mutex_fragments import *
-from algo.generate_supervoxel_edges import *
-from algo.global_mutex_agglom import *
-from algo.extract_seg_from_luts import *
-from algo.skeleton_correct import *
+from .algo.generate_mutex_fragments import *
+from .algo.generate_supervoxel_edges import *
+from .algo.global_mutex_agglom import *
+from .algo.extract_seg_from_luts import *
+from .algo.skeleton_correct import *
 
 
 logger: logging.Logger = logging.getLogger(name=__name__)
