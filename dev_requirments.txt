@@ -8,4 +8,5 @@ funlib.geometry@ git+https://github.com/funkelab/funlib.geometry
 funlib.persistence@ git+https://github.com/funkelab/funlib.persistence
 funlib.segment@ git+https://github.com/funkelab/funlib.segment
 gunpowder@ git+https://github.com/funkey/gunpowder
+funlib.evaluate@ git+https://github.com/funkelab/funlib.evaluate
 .

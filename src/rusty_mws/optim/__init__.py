@@ -1,2 +1,2 @@
-from .genetic_optim import evo_algo
+from .genetic_optim import GeneticOptimizer
 from .gridsearch_optim import grid_search

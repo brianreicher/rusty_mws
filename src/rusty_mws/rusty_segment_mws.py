@@ -187,7 +187,7 @@ class PostProcessor():
         self.affs_file: str = affs_file
         self.affs_dataset: str = affs_dataset
 
-        if fragments_file is "":
+        if fragments_file == "":
             self.fragments_file = affs_file
         else:
             self.fragments_file: str = fragments_file
@@ -196,7 +196,7 @@ class PostProcessor():
         self.seeds_file: str = seeds_file
         self.seeds_dataset: str = seeds_dataset
 
-        if seg_file is "":
+        if seg_file == "":
             self.seg_file = affs_file
         else:
             self.seg_file: str = seg_file
