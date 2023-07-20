@@ -1,6 +1,7 @@
 import rusty_mws
 from funlib.geometry import Coordinate
 import numpy as np
+
 import pytest
 
 

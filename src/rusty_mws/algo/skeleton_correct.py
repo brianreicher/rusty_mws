@@ -16,7 +16,7 @@ def skel_correct_segmentation(
     fragments_file: str,
     fragments_dataset: str,
     seg_file: str,
-    seg_dataset: str,
+    seg_dataset: str = "seg",
     nworkers: int = 25,
     erode_iterations: int = 0,
     erode_footprint: np.ndarray = ball(radius=5),
@@ -33,7 +33,6 @@ def skel_correct_segmentation(
 
     seeds_dataset (``str``):
         The name of the fragments dataset to read from.
-
 
     fragments_file (``str``):
         Path (relative or absolute) to the zarr file containing fragments.
