@@ -68,7 +68,7 @@ where:
 
 For seeded skeleton-corrected segmentation with Mutex Watershed fragments:
 ```python
-pp: rusty_mws.PostProcessor = rusty_mws.PostProcessor.(
+pp: rusty_mws.PostProcessor = rusty_mws.PostProcessor(
             affs_file="../data/raw_predictions.zarr",
             affs_dataset="pred_affs_latest",
             seeds_file="../data/raw_predictions.zarr",
