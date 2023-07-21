@@ -1,6 +1,6 @@
 numpy
 pymongo
-scikit-image
+scikit-image@ https://github.com/brianreicher/scikit-image
 daisy
 pytest
 mwatershed@ git+https://github.com/pattonw/mwatershed
