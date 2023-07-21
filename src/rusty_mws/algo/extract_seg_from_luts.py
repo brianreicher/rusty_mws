@@ -121,7 +121,9 @@ def segment_in_block(block: daisy.Block, segmentation, fragments, lut) -> bool:
     assert old_vals.dtype == new_vals.dtype == fragments.dtype
 
     logging.info("Relabelling . . .")
-    relabelled: np.ndarray = replace_values(fragments, old_vals, new_vals, out_array=relabelled)
+    relabelled: np.ndarray = replace_values(
+        fragments, old_vals, new_vals, out_array=relabelled
+    )
 
     segmentation[block.write_roi] = relabelled
     return True

@@ -13,7 +13,8 @@ from .algo.skeleton_correct import *
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
-class PostProcessor():
+
+class PostProcessor:
     """Driver for post-processing segmentation.
 
     Args:
@@ -30,7 +31,7 @@ class PostProcessor():
         sample_name (str, optional):
             A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name.
             Default is None.
-        
+
         fragments_file (str, optional):
             Path (relative or absolute) to the zarr file to write fragments to.
             Default is "", which sets the file to the same as the given ``affs_file``.
@@ -38,11 +39,11 @@ class PostProcessor():
         fragments_dataset (str, optional):
             The name of the fragments dataset to read/write to in the fragments_file.
             Default is "frags."
-        
+
         seg_file (str, optional):
             Path (relative or absolute) to the zarr file to write fragments to.
             Default is "", which sets the file to the same as the given ``affs_file``.
-        
+
         seg_dataset (str, optional):
             The name of the segmentation dataset to write to.
             Default is "seg."
@@ -54,7 +55,7 @@ class PostProcessor():
         seeds_dataset (str, optional):
             The name of the seeds dataset in the seeds file to read from.
             Default is None.
-        
+
         mask_file (str, optional):
             Path (relative or absolute) to the zarr file containing the mask.
             Default is None.
@@ -148,41 +149,42 @@ class PostProcessor():
             Default is 1.
     """
 
-    def __init__(self,    
-                affs_file: str,
-                affs_dataset: str,
-                context: Optional[Coordinate] = None,
-                sample_name:Optional[str] = None,
-                fragments_file: Optional[str] = "",
-                fragments_dataset: Optional[str] = "frags",
-                seg_file: Optional[str] = "",
-                seg_dataset: Optional[str] = "seg",
-                seeds_file: Optional[str]=None,
-                seeds_dataset: Optional[str]=None,
-                mask_file: Optional[str] = None,
-                mask_dataset: Optional[str] = None,
-                filter_val: Optional[float] = 0.5,
-                nworkers_frags: Optional[int] = 10,
-                n_chunk_write_frags: Optional[int] = 2,
-                lr_bias_ratio: Optional[float] = -0.175,
-                adjacent_edge_bias: Optional[float] = -0.4,
-                neighborhood_length: Optional[int] = 12,
-                mongo_port: Optional[int] = 27017,
-                db_name: Optional[str] = "seg",
-                seeded: Optional[bool] = True,
-                nworkers_correct: Optional[int] = 25,
-                n_chunk_write_correct: Optional[int] = 1,
-                erode_iterations: Optional[int] = 0,
-                erode_footprint: Optional[np.ndarray] = ball(radius=5),
-                alternate_dilate: Optional[bool] = True,
-                dilate_footprint: Optional[np.ndarray] = ball(radius=5),
-                adj_bias: Optional[float] = -0.1,
-                lr_bias: Optional[float] = -1.5,
-                nworkers_supervox: Optional[int] = 25,
-                merge_function: Optional[str] = "mwatershed",
-                nworkers_lut: Optional[int] = 25,
-                n_chunk_write_lut: Optional[int] = 1,) -> None:
-        
+    def __init__(
+        self,
+        affs_file: str,
+        affs_dataset: str,
+        context: Optional[Coordinate] = None,
+        sample_name: Optional[str] = None,
+        fragments_file: Optional[str] = "",
+        fragments_dataset: Optional[str] = "frags",
+        seg_file: Optional[str] = "",
+        seg_dataset: Optional[str] = "seg",
+        seeds_file: Optional[str] = None,
+        seeds_dataset: Optional[str] = None,
+        mask_file: Optional[str] = None,
+        mask_dataset: Optional[str] = None,
+        filter_val: Optional[float] = 0.5,
+        nworkers_frags: Optional[int] = 10,
+        n_chunk_write_frags: Optional[int] = 2,
+        lr_bias_ratio: Optional[float] = -0.175,
+        adjacent_edge_bias: Optional[float] = -0.4,
+        neighborhood_length: Optional[int] = 12,
+        mongo_port: Optional[int] = 27017,
+        db_name: Optional[str] = "seg",
+        seeded: Optional[bool] = True,
+        nworkers_correct: Optional[int] = 25,
+        n_chunk_write_correct: Optional[int] = 1,
+        erode_iterations: Optional[int] = 0,
+        erode_footprint: Optional[np.ndarray] = ball(radius=5),
+        alternate_dilate: Optional[bool] = True,
+        dilate_footprint: Optional[np.ndarray] = ball(radius=5),
+        adj_bias: Optional[float] = -0.1,
+        lr_bias: Optional[float] = -1.5,
+        nworkers_supervox: Optional[int] = 25,
+        merge_function: Optional[str] = "mwatershed",
+        nworkers_lut: Optional[int] = 25,
+        n_chunk_write_lut: Optional[int] = 1,
+    ) -> None:
         # dataset vars
         self.affs_file: str = affs_file
         self.affs_dataset: str = affs_dataset
@@ -209,8 +211,10 @@ class PostProcessor():
         if context is not None:
             self.context: Coordinate = context
         else:
-            self.context: Coordinate = Coordinate(np.max(a=np.abs(neighborhood[:neighborhood_length]), axis=0))
-        
+            self.context: Coordinate = Coordinate(
+                np.max(a=np.abs(neighborhood[:neighborhood_length]), axis=0)
+            )
+
         self.filter_val: float = filter_val
         self.seeded: bool = seeded
         self.merge_function: str = merge_function
@@ -223,7 +227,7 @@ class PostProcessor():
         # Daisy vars
         self.nworkers_frags: int = nworkers_frags
         self.nworkers_correct: int = nworkers_correct
-        self.nworkers_supervox: int  = nworkers_supervox
+        self.nworkers_supervox: int = nworkers_supervox
         self.nworkers_lut: int = nworkers_lut
         self.n_chunk_write_frags: int = n_chunk_write_frags
         self.n_chunk_write_correct: int - n_chunk_write_correct
@@ -244,7 +248,9 @@ class PostProcessor():
         self.adj_bias: float = adj_bias
         self.lr_bias: float = lr_bias
 
-    def run_corrected_segmentation_pipeline(self,) -> bool:
+    def run_corrected_segmentation_pipeline(
+        self,
+    ) -> bool:
         """Full skeleton-corrected MWS segmentation from affinities.
 
         Returns:
@@ -326,8 +332,9 @@ class PostProcessor():
 
         return success
 
-
-    def run_pred_segmentation_pipeline(self,) -> bool:
+    def run_pred_segmentation_pipeline(
+        self,
+    ) -> bool:
         """Full Mutex Watershed segmentation and agglomeration, using a MongoDB RAG.
 
         Returns:
@@ -349,25 +356,25 @@ class PostProcessor():
         success: bool = True
 
         success = success & blockwise_generate_mutex_fragments(
-                sample_name=self.sample_name,
-                affs_file=self.affs_file,
-                affs_dataset=self.affs_dataset,
-                fragments_file=self.fragments_file,
-                fragments_dataset=self.fragments_dataset,
-                context=self.context,
-                filter_val=self.filter_val,
-                seeds_file=None,
-                seeds_dataset=None,
-                mask_file=self.mask_file,
-                mask_dataset=self.mask_dataset,
-                training=False,
-                nworkers=self.nworkers_frags,
-                n_chunk_write=self.n_chunk_write_frags,
-                lr_bias_ratio=self.lr_bias_ratio,
-                adjacent_edge_bias=self.adjacent_edge_bias,
-                neighborhood_length=self.neighborhood_length,
-                mongo_port=self.mongo_port,
-                db_name=self.db_name,
+            sample_name=self.sample_name,
+            affs_file=self.affs_file,
+            affs_dataset=self.affs_dataset,
+            fragments_file=self.fragments_file,
+            fragments_dataset=self.fragments_dataset,
+            context=self.context,
+            filter_val=self.filter_val,
+            seeds_file=None,
+            seeds_dataset=None,
+            mask_file=self.mask_file,
+            mask_dataset=self.mask_dataset,
+            training=False,
+            nworkers=self.nworkers_frags,
+            n_chunk_write=self.n_chunk_write_frags,
+            lr_bias_ratio=self.lr_bias_ratio,
+            adjacent_edge_bias=self.adjacent_edge_bias,
+            neighborhood_length=self.neighborhood_length,
+            mongo_port=self.mongo_port,
+            db_name=self.db_name,
         )
 
         success = success & blockwise_generate_supervoxel_edges(
@@ -406,8 +413,7 @@ class PostProcessor():
 
         return True
 
-
-    def optimize_pred_segmentation( # TODO: implement genetic optimization
+    def optimize_pred_segmentation(  # TODO: implement genetic optimization
         adj_bias: float,
         lr_bias: float,
         sample_name: str,
@@ -440,5 +446,7 @@ class PostProcessor():
             adj_bias=adj_bias,
             lr_bias=lr_bias,
         )
-        extract_segmentation(fragments_file, fragments_dataset, sample_name, num_workers=20)
+        extract_segmentation(
+            fragments_file, fragments_dataset, sample_name, num_workers=20
+        )
         return True

@@ -64,7 +64,7 @@ def blockwise_generate_supervoxel_edges(
 
         mongo_port (``integer``):
             Port number where a MongoDB server instance is listening.
-        
+
         db_name (``string``):
             Name of the specified MongoDB database to use at the RAG.
 
@@ -113,7 +113,11 @@ def blockwise_generate_supervoxel_edges(
 
     # worker func
     def generate_super_voxel_edges_worker(
-        block: daisy.Block, affs=affs, fragments=fragments, rag_provider=rag_provider, completed_collection=completed_collection,
+        block: daisy.Block,
+        affs=affs,
+        fragments=fragments,
+        rag_provider=rag_provider,
+        completed_collection=completed_collection,
     ) -> tuple:
         try:
             logger.info("getting block")

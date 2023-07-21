@@ -16,7 +16,7 @@ def global_mutex_agglomeration(
     fragments_file: str,
     fragments_dataset,
     merge_function: str = "mwatershed",
-    adj_bias: float = .1,
+    adj_bias: float = 0.1,
     lr_bias: float = -1.2,
     mongo_port: int = 27017,
     db_name: str = "seg",
@@ -41,13 +41,13 @@ def global_mutex_agglomeration(
 
         lr_bias (``float``):
             Amount to bias long-range pixel weights when computing segmentation from the stored graph.
-        
+
         mongo_port (``integer``):
             Port number where a MongoDB server instance is listening.
-        
+
         db_name (``string``):
             Name of the specified MongoDB database to use at the RAG.
-    
+
     Returns:
         ``bool``:
             Returns ``true`` if all Daisy tasks complete successfully.

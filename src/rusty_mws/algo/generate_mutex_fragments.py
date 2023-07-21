@@ -92,13 +92,13 @@ def blockwise_generate_mutex_fragments(
 
         neighborhood_length (``integer``):
             Number of neighborhood offsets to use, default is 12.
-        
+
         mongo_port (``integer``):
             Port number where a MongoDB server instance is listening.
-        
+
         db_name (``string``):
             Name of the specified MongoDB database to use at the RAG.
-        
+
         Returns:
             ``bool``:
                 Returns ``true`` if all Daisy tasks complete successfully.
@@ -123,7 +123,9 @@ def blockwise_generate_mutex_fragments(
     total_roi_ds: Roi = affs.roi.grow(-context * voxel_size, -context * voxel_size)
 
     # Make total_roi_ds and even multiple of chunk_shape
-    total_roi_ds: Roi = total_roi_ds.snap_to_grid(chunk_shape * voxel_size, mode="shrink")
+    total_roi_ds: Roi = total_roi_ds.snap_to_grid(
+        chunk_shape * voxel_size, mode="shrink"
+    )
 
     # Add context to total_roi_ds for daisy
     total_roi_daisy: Roi = total_roi_ds.grow(context * voxel_size, context * voxel_size)

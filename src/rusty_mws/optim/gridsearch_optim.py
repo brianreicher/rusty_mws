@@ -6,15 +6,17 @@ from ..algo.global_mutex_agglom import segment
 from ..algo.extract_seg_from_luts import extract_segmentation
 from funlib.persistence import open_ds, graphs, Array
 import mwatershed as mws
-from tqdm import tqdm 
+from tqdm import tqdm
 
 
-def grid_search(adj_bias_range:tuple, lr_bias_range:tuple, 
-                      sample_name:str="htem4413041148969302336", 
-                      merge_function:str="mwatershed",
-                      fragments_file:str="./validation.zarr",
-                      fragments_dataset:str="frag_seg",):
-    
+def grid_search(
+    adj_bias_range: tuple,
+    lr_bias_range: tuple,
+    sample_name: str = "htem4413041148969302336",
+    merge_function: str = "mwatershed",
+    fragments_file: str = "./validation.zarr",
+    fragments_dataset: str = "frag_seg",
+):
     db_host: str = "mongodb://localhost:27017"
     db_name: str = "seg"
     print("Reading graph from DB ", db_name)
@@ -49,30 +51,31 @@ def grid_search(adj_bias_range:tuple, lr_bias_range:tuple,
         return
 
     edges: np.ndarray = np.stack(list(graph.edges), axis=0)
-    adj_scores: np.ndarray = np.array([graph.edges[tuple(e)]["adj_weight"] for e in edges]).astype(
-        np.float32
-    )
-    lr_scores: np.ndarray = np.array([graph.edges[tuple(e)]["lr_weight"] for e in edges]).astype(
-        np.float32
-    )
+    adj_scores: np.ndarray = np.array(
+        [graph.edges[tuple(e)]["adj_weight"] for e in edges]
+    ).astype(np.float32)
+    lr_scores: np.ndarray = np.array(
+        [graph.edges[tuple(e)]["lr_weight"] for e in edges]
+    ).astype(np.float32)
 
     scores: list = []
     print("Running grid search . . .")
     index: int = 0
     for a_bias in tqdm(np.arange(adj_bias_range[0], adj_bias_range[1] + 0.1, 0.1)):
-        index+=1
+        index += 1
         start_time: float = time.time()
         for l_bias in np.arange(lr_bias_range[0], lr_bias_range[1] + 0.1, 0.1):
             n_seg_run: int = get_num_segs(edges, adj_scores, lr_scores, a_bias, l_bias)
-            if 6000<n_seg_run<14000:
+            if 6000 < n_seg_run < 14000:
                 scores.append((a_bias, l_bias, n_seg_run))
-        np.savez_compressed("./gridsearch_biases.npz", grid=np.array(sorted(scores, key=lambda x: x[2])))
+        np.savez_compressed(
+            "./gridsearch_biases.npz", grid=np.array(sorted(scores, key=lambda x: x[2]))
+        )
         print(f"Completed {index}th iteration in {time.time()-start_time} sec")
     print("Completed grid search")
 
 
 def get_num_segs(edges, adj_scores, lr_scores, adj_bias, lr_bias) -> None:
-
     edges: list[tuple] = [
         (adj + adj_bias, u, v)
         for adj, (u, v) in zip(adj_scores, edges)
