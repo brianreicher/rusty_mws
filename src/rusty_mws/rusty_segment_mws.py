@@ -230,7 +230,7 @@ class PostProcessor:
         self.nworkers_supervox: int = nworkers_supervox
         self.nworkers_lut: int = nworkers_lut
         self.n_chunk_write_frags: int = n_chunk_write_frags
-        self.n_chunk_write_correct: int - n_chunk_write_correct
+        self.n_chunk_write_correct: int = n_chunk_write_correct
         self.n_chunk_write_lut: int = n_chunk_write_lut
 
         # fragment weight and neighborhood vars
@@ -318,8 +318,8 @@ class PostProcessor:
         success = success & skel_correct_segmentation(
             seeds_file=self.seeds_file,
             seeds_dataset=self.seeds_dataset,
-            frag_file=self.fragments_file,
-            frag_name=self.fragments_dataset,
+            fragments_file=self.fragments_file,
+            fragments_dataset=self.fragments_dataset,
             seg_file=self.seg_file,
             seg_dataset=self.seg_dataset,
             nworkers=self.nworkers_correct,
