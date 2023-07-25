@@ -214,7 +214,7 @@ class PostProcessor:
             self.context: Coordinate = Coordinate(
                 np.max(a=np.abs(neighborhood[:neighborhood_length]), axis=0)
             )
-
+        self.hello = None
         self.filter_val: float = filter_val
         self.seeded: bool = seeded
         self.merge_function: str = merge_function
