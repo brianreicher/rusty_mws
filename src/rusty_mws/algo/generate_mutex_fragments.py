@@ -134,7 +134,7 @@ def blockwise_generate_mutex_fragments(
 
     write_roi: Roi = write_roi_voxels * voxel_size
 
-    logger.info("writing fragments to %s", fragments_file)
+    logger.info(f"writing fragments to {fragments_file}/{fragments_dataset}")
 
     fragments_prep: Array = prepare_ds(
         filename=fragments_file,
