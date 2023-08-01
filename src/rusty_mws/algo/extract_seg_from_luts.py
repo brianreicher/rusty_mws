@@ -28,6 +28,12 @@ def extract_segmentation(
 
         fragments_dataset (``str``):
             The name of the fragments dataset to read from in the fragments file.
+        
+        seg_file (str, optional):
+            Path (relative or absolute) to the zarr file to write fragments to.
+
+        seg_dataset (str, optional):
+            The name of the segmentation dataset to write to.
 
         nworkers (``integer``):
             Number of distributed workers to run the Daisy parallel task with.
@@ -59,8 +65,6 @@ def extract_segmentation(
     write_roi: Roi = write_roi_voxels * voxel_size
 
     logging.info("Preparing segmentation dataset...")
-
-    seg_name: str = f"pred_seg"
 
     start: float = time.time()
 
