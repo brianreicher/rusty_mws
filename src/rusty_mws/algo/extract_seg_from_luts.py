@@ -14,6 +14,8 @@ logging.getLogger().setLevel(logging.INFO)
 def extract_segmentation(
     fragments_file: str,
     fragments_dataset: str,
+    seg_file:str,
+    seg_dataset:str,
     nworkers: int = 20,
     merge_function: str = "mwatershed",
     n_chunk_write: int = 1,
@@ -63,9 +65,9 @@ def extract_segmentation(
     start: float = time.time()
 
     segmentation: Array = prepare_ds(
-        fragments_file,
-        seg_name,
-        fragments.roi,
+        filename=seg_file,
+        ds_name=seg_dataset,
+        total_roi=fragments.roi,
         voxel_size=voxel_size,
         dtype=np.uint64,
         write_roi=write_roi,

@@ -406,6 +406,8 @@ class PostProcessor:
         success = success & extract_segmentation(
             fragments_file=self.fragments_file,
             fragments_dataset=self.fragments_dataset,
+            seg_file=self.seg_file,
+            seg_dataset=self.seg_dataset,
             nworkers=self.nworkers_lut,
             merge_function=self.merge_function,
             n_chunk_write=self.n_chunk_write_lut,
