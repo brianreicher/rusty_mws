@@ -5,16 +5,23 @@ from rusty_mws.rusty_segment_mws import *
 from ..algo import segment, extract_segmentation
 from funlib.persistence import open_ds, graphs, Array
 import mwatershed as mws
-from tqdm import tqdm
 
-# from funlib.evaluate import rand_voi
+
+from funlib.evaluate import rand_voi
 
 from .optimizer import Optimizer
 
 
 class GeneticOptimizer(Optimizer):
     def __init__(
-        self, param_space: dict, adj_bias_range: tuple, lr_bias_range: tuple
+        self,
+        sample_name:str,
+        param_space: dict, 
+        adj_bias_range: tuple,
+        lr_bias_range: tuple,
+        db_host: str =  "mongodb://localhost:27017",
+        db_name: str = "seg",
+        merge_function:str="mwatershed",
     ) -> None:
         super().__init__(param_space)
 
@@ -22,6 +29,17 @@ class GeneticOptimizer(Optimizer):
         self.adj_bias_range: tuple = adj_bias_range
         self.lr_bias_range: tuple = lr_bias_range
 
+        # db hosting
+        self.sample_name: str = sample_name
+        self.graph_provider = graphs.MongoDbGraphProvider(
+            db_name=db_name,
+            host=db_host,
+            mode="r+",
+            nodes_collection=f"{self.sample_name}_nodes",
+            meta_collection=f"{self.sample_name}_meta",
+            edges_collection=self.sample_name + "_edges_" + merge_function,
+            position_attribute=["center_z", "center_y", "center_x"],
+        )
     @staticmethod
     def crossover(parent1, parent2) -> tuple:
         # Perform crossover by blending the weight biases of the parents
@@ -49,20 +67,18 @@ class GeneticOptimizer(Optimizer):
 
         return adj_bias, lr_bias
 
-    def evo_algo(
-        population_size,
-        num_generations,
-        adj_bias_range,
-        lr_bias_range,
-        seg_file="./validation.zarr",
-        seg_ds="pred_seg",
-        rasters_file="../../data/xpress-challenge.zarr",
-        fragments_file="./validation.zarr",
-        fragments_dataset="frag_seg",
-        rasters_ds="volumes/validation_gt_rasters",
-        sample_name: str = "htem39454661040933637",
-        merge_function="mwatershed",
-    ):
+    def optimize(self,
+        num_generations:int,
+        population_size:int,
+        adj_bias_range:tuple,
+        lr_bias_range:tuple,
+        seg_file:str="./validation.zarr",
+        seg_ds:str="pred_seg",
+        rasters_file:str="../../data/xpress-challenge.zarr",
+        fragments_file:str="./validation.zarr",
+        fragments_dataset:str="frag_seg",
+        rasters_ds:str="volumes/validation_gt_rasters",
+    ) -> list:
         # Initialize the population
         population: list = []
         for _ in range(population_size):
@@ -70,28 +86,16 @@ class GeneticOptimizer(Optimizer):
             lr_bias = random.uniform(*lr_bias_range)
             population.append((adj_bias, lr_bias))
 
-        # set the rasters array
+        # set the seeds and frags arrays
         frag: Array = open_ds(fragments_file, fragments_dataset)
         rasters: Array = open_ds(rasters_file, rasters_ds)
 
-        print("Loading rasters . . .")
+        print("Loading seeds . . .")
         rasters = rasters.to_ndarray(frag.roi)
         rasters = np.asarray(rasters, np.uint64)
 
-        db_host: str = "mongodb://localhost:27017"
-        db_name: str = "seg"
-        print("Reading graph from DB ", db_name)
+        print("Reading graph from DB ", self.db_name)
         start = time.time()
-
-        graph_provider = graphs.MongoDbGraphProvider(
-            db_name,
-            db_host,
-            mode="r+",
-            nodes_collection=f"{sample_name}_nodes",
-            meta_collection=f"{sample_name}_meta",
-            edges_collection=sample_name + "_edges_" + merge_function,
-            position_attribute=["center_z", "center_y", "center_x"],
-        )
 
         print("Got Graph provider")
 
@@ -102,8 +106,7 @@ class GeneticOptimizer(Optimizer):
         roi = fragments.roi
 
         print("Getting graph for roi %s" % roi)
-
-        graph = graph_provider.get_graph(roi)
+        graph = self.graph_provider.get_graph(roi)
 
         print("Read graph in %.3fs" % (time.time() - start))
 
@@ -136,11 +139,11 @@ class GeneticOptimizer(Optimizer):
                     rasters,
                     seg_file,
                     seg_ds,
-                    sample_name,
+                    self.sample_name,
                     edges,
                     adj_scores,
                     lr_scores,
-                    merge_function,
+                    self.merge_function,
                     out_dir,
                     fragments_file,
                     fragments_dataset,
@@ -159,8 +162,8 @@ class GeneticOptimizer(Optimizer):
             for _ in range(population_size - len(parents)):
                 parent1 = random.choice(parents)
                 parent2 = random.choice(parents)
-                child = crossover(parent1, parent2)
-                child = mutate(child)
+                child = self.crossover(parent1, parent2)
+                child = self.mutate(child)
                 offspring.append(child)
 
             # Combine parents and offspring to form the new population
@@ -187,11 +190,11 @@ class GeneticOptimizer(Optimizer):
     def evaluate_weight_biases(
         adj_bias,
         lr_bias,
-        rasters,
         seg_file,
         seg_ds,
         sample_name,
         edges,
+        rasters,
         adj_scores,
         lr_scores,
         merge_function,
@@ -211,7 +214,7 @@ class GeneticOptimizer(Optimizer):
 
         seg: np.ndarray = np.asarray(seg, dtype=np.uint64)
 
-        # score_dict: dict = rand_voi(rasters, seg, True)
-        score_dict: dict = {}
+        score_dict: dict = rand_voi(rasters, seg, True)
+
         print([score_dict[f"voi_split"], score_dict["voi_merge"]])
         return np.mean(a=[score_dict[f"voi_split"], score_dict["voi_merge"]])
