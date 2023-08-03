@@ -94,14 +94,12 @@ class GeneticOptimizer(Optimizer):
     def optimize(self,
         num_generations:int,
         population_size:int,
-        adj_bias_range:tuple,
-        lr_bias_range:tuple,
     ) -> list:
         # Initialize the population
         population: list = []
         for _ in range(population_size):
-            adj_bias = random.uniform(*adj_bias_range)
-            lr_bias = random.uniform(*lr_bias_range)
+            adj_bias = random.uniform(*self.adj_bias_range)
+            lr_bias = random.uniform(*self.lr_bias_range)
             population.append((adj_bias, lr_bias))
 
         print("Reading graph from DB ", self.db_name)

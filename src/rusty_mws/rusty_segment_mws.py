@@ -10,7 +10,7 @@ from .algo.global_mutex_agglom import *
 from .algo.extract_seg_from_luts import *
 from .algo.skeleton_correct import *
 from .optim.genetic_optim import *
-from rusty_mws.optim import genetic_optim
+from rusty_mws.optim import GeneticOptimizer
 
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -418,14 +418,9 @@ class PostProcessor:
         return True
 
     def optimize_pred_segmentation(  # TODO: implement genetic optimization
-        db_host: str,
-        db_name: str,
-        adj_bias: float,
-        lr_bias: float,
-        sample_name: str,
-        fragments_file: str,
-        fragments_dataset: str,
-        merge_function: str,
+        self,
+        adj_bias_range:tuple[float, float]=(-2.0, 2.0),
+        lr_bias_range:tuple[float, float]=(-2.0, 2.0),
     ) -> bool:
         """Soley global agglomeration and segment extraction via Mutex Watershed - used to optimize weights during the global agglomeration step.
 
@@ -446,10 +441,19 @@ class PostProcessor:
                 The name of the fragments dataset to read from in the fragments_file.
 
         """
-        gen_optim: GeneticOptimizer = GeneticOptimizer(sample_name=sample_name,
-                                                       db_host=db_host,
-                                                       db_name=db_name,
-                                                       merge_function=merge_function)
-        gen_optim.optimize()
-        
+        gen_optim: GeneticOptimizer = GeneticOptimizer(fragments_file=self.fragments_file,
+                                                        fragments_dataset=self.fragments_dataset,  
+                                                        seg_file=self.seg_file,
+                                                        seg_dataset=self.seg_dataset,
+                                                        seeds_file=self.seeds_file,
+                                                        seeds_dataset=self.seeds_dataset,
+                                                        sample_name=self.sample_name,
+                                                       db_host=f"mongodb://localhost:{self.mongo_port}",
+                                                       db_name=self.db_name,
+                                                       merge_function=self.merge_function,
+                                                       adj_bias_range=adj_bias_range,
+                                                       lr_bias_range=lr_bias_range)
+        gen_optim.optimize(num_generations=50,
+                           population_size=50,)
+
         return True
