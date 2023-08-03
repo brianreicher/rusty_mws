@@ -15,6 +15,12 @@ from .optimizer import Optimizer
 class GeneticOptimizer(Optimizer):
     def __init__(
         self,
+        fragments_file: str,
+        fragments_dataset: str,
+        seg_file: str,
+        seg_dataset: str,
+        seeds_file: str,
+        seeds_dataset: str,
         sample_name:str,
         param_space: dict, 
         adj_bias_range: tuple,
@@ -40,6 +46,12 @@ class GeneticOptimizer(Optimizer):
             edges_collection=self.sample_name + "_edges_" + merge_function,
             position_attribute=["center_z", "center_y", "center_x"],
         )
+        
+        # set the seeds and frags arrays
+        self.fragments_file: str = fragments_file
+        self.frags: Array = open_ds(fragments_file, fragments_dataset)
+        self.seeds: Array = open_ds(seeds_file, seeds_dataset)
+
     @staticmethod
     def crossover(parent1, parent2) -> tuple:
         # Perform crossover by blending the weight biases of the parents
@@ -72,12 +84,6 @@ class GeneticOptimizer(Optimizer):
         population_size:int,
         adj_bias_range:tuple,
         lr_bias_range:tuple,
-        seg_file:str="./validation.zarr",
-        seg_ds:str="pred_seg",
-        rasters_file:str="../../data/xpress-challenge.zarr",
-        fragments_file:str="./validation.zarr",
-        fragments_dataset:str="frag_seg",
-        rasters_ds:str="volumes/validation_gt_rasters",
     ) -> list:
         # Initialize the population
         population: list = []
@@ -86,24 +92,18 @@ class GeneticOptimizer(Optimizer):
             lr_bias = random.uniform(*lr_bias_range)
             population.append((adj_bias, lr_bias))
 
-        # set the seeds and frags arrays
-        frag: Array = open_ds(fragments_file, fragments_dataset)
-        rasters: Array = open_ds(rasters_file, rasters_ds)
 
-        print("Loading seeds . . .")
-        rasters = rasters.to_ndarray(frag.roi)
-        rasters = np.asarray(rasters, np.uint64)
+        print("Converting seeds . . .")
+        seeds = self.seeds.to_ndarray(self.frags.roi)
+        rasters = np.asarray(seeds, np.uint64)
 
         print("Reading graph from DB ", self.db_name)
         start = time.time()
 
         print("Got Graph provider")
-
-        fragments = open_ds(fragments_file, fragments_dataset)
-
         print("Opened fragments")
 
-        roi = fragments.roi
+        roi = self.frags.roi
 
         print("Getting graph for roi %s" % roi)
         graph = self.graph_provider.get_graph(roi)
@@ -122,7 +122,7 @@ class GeneticOptimizer(Optimizer):
             [graph.edges[tuple(e)]["lr_weight"] for e in edges]
         ).astype(np.float32)
 
-        out_dir: str = os.path.join(fragments_file, "luts_full")
+        out_dir: str = os.path.join(self.fragments_file, "luts_full")
         os.makedirs(out_dir, exist_ok=True)
 
         # evo loop
@@ -187,8 +187,7 @@ class GeneticOptimizer(Optimizer):
         ]
         return best_biases
 
-    def evaluate_weight_biases(
-        adj_bias,
+    def evaluate_weight_biases(adj_bias,
         lr_bias,
         seg_file,
         seg_ds,

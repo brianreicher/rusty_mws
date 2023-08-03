@@ -9,6 +9,8 @@ from .algo.generate_supervoxel_edges import *
 from .algo.global_mutex_agglom import *
 from .algo.extract_seg_from_luts import *
 from .algo.skeleton_correct import *
+from .optim.genetic_optim import *
+from rusty_mws.optim import genetic_optim
 
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -416,11 +418,14 @@ class PostProcessor:
         return True
 
     def optimize_pred_segmentation(  # TODO: implement genetic optimization
+        db_host: str,
+        db_name: str,
         adj_bias: float,
         lr_bias: float,
         sample_name: str,
         fragments_file: str,
         fragments_dataset: str,
+        merge_function: str,
     ) -> bool:
         """Soley global agglomeration and segment extraction via Mutex Watershed - used to optimize weights during the global agglomeration step.
 
@@ -441,14 +446,10 @@ class PostProcessor:
                 The name of the fragments dataset to read from in the fragments_file.
 
         """
-        global_mutex_agglomeration(
-            fragments_file,
-            fragments_dataset,
-            sample_name,
-            adj_bias=adj_bias,
-            lr_bias=lr_bias,
-        )
-        extract_segmentation(
-            fragments_file, fragments_dataset, sample_name, num_workers=20
-        )
+        gen_optim: GeneticOptimizer = GeneticOptimizer(sample_name=sample_name,
+                                                       db_host=db_host,
+                                                       db_name=db_name,
+                                                       merge_function=merge_function)
+        gen_optim.optimize()
+        
         return True
