@@ -49,9 +49,17 @@ class GeneticOptimizer(Optimizer):
         
         # set the seeds and frags arrays
         self.fragments_file: str = fragments_file
-        self.frags: Array = open_ds(fragments_file, fragments_dataset)
-        self.seeds: Array = open_ds(seeds_file, seeds_dataset)
+        self.fragments_dataset: str = fragments_dataset
+        self.seg_file: str = seg_file
+        self.seg_dataset: str = seg_dataset
+        self.seeds_file: str = seeds_file
+        self.seeds_dataset: str = seeds_dataset
 
+        self.frags: Array = open_ds(fragments_file, fragments_dataset)
+        seeds: Array = open_ds(seeds_file, seeds_dataset)
+        seeds = self.seeds.to_ndarray(self.frags.roi)
+        self.seeds: np.ndarray = np.asarray(seeds, np.uint64)
+    
     @staticmethod
     def crossover(parent1, parent2) -> tuple:
         # Perform crossover by blending the weight biases of the parents
@@ -79,6 +87,10 @@ class GeneticOptimizer(Optimizer):
 
         return adj_bias, lr_bias
 
+    @staticmethod
+    def rag_db_stats(graph) -> tuple:
+        pass
+
     def optimize(self,
         num_generations:int,
         population_size:int,
@@ -92,16 +104,10 @@ class GeneticOptimizer(Optimizer):
             lr_bias = random.uniform(*lr_bias_range)
             population.append((adj_bias, lr_bias))
 
-
-        print("Converting seeds . . .")
-        seeds = self.seeds.to_ndarray(self.frags.roi)
-        rasters = np.asarray(seeds, np.uint64)
-
         print("Reading graph from DB ", self.db_name)
         start = time.time()
 
         print("Got Graph provider")
-        print("Opened fragments")
 
         roi = self.frags.roi
 
@@ -134,19 +140,12 @@ class GeneticOptimizer(Optimizer):
             for adj_bias, lr_bias in population:
                 print("BIASES:", adj_bias, lr_bias)
                 fitness = self.evaluate_weight_biases(
-                    adj_bias,
-                    lr_bias,
-                    rasters,
-                    seg_file,
-                    seg_ds,
-                    self.sample_name,
-                    edges,
-                    adj_scores,
-                    lr_scores,
-                    self.merge_function,
-                    out_dir,
-                    fragments_file,
-                    fragments_dataset,
+                    adj_bias=adj_bias,
+                    lr_bias=lr_bias,
+                    edges=edges,
+                    adj_scores=adj_scores,
+                    lr_scores=lr_scores,
+                    out_dir=out_dir,
                 )
                 fitness_values.append((adj_bias, lr_bias, fitness))
 
@@ -187,33 +186,28 @@ class GeneticOptimizer(Optimizer):
         ]
         return best_biases
 
-    def evaluate_weight_biases(adj_bias,
-        lr_bias,
-        seg_file,
-        seg_ds,
-        sample_name,
-        edges,
-        rasters,
-        adj_scores,
-        lr_scores,
-        merge_function,
-        out_dir,
-        fragments_file,
-        fragments_dataset,
+    def evaluate_weight_biases(
+        self,
+        adj_bias: float,
+        lr_bias: float,
+        edges: np.ndarray,
+        adj_scores: np.ndarray,
+        lr_scores: np.ndarray,
+        out_dir: str,
     ) -> np.floating:
-        # Call the function that performs the agglomeration step with the given weight biases
+        
         segment(
-            edges, adj_scores, lr_scores, merge_function, out_dir, adj_bias, lr_bias
+            edges, adj_scores, lr_scores, self.merge_function, out_dir, adj_bias, lr_bias
         )
-        extract_segmentation(fragments_file, fragments_dataset, sample_name)
+        extract_segmentation(self.fragments_file, self.fragments_dataset, self.sample_name)
 
-        seg: Array = open_ds(filename=seg_file, ds_name=seg_ds)
+        seg: Array = open_ds(filename=self.seg_file, ds_name=self.seg_ds)
 
         seg: np.ndarray = seg.to_ndarray()
 
         seg: np.ndarray = np.asarray(seg, dtype=np.uint64)
 
-        score_dict: dict = rand_voi(rasters, seg, True)
+        score_dict: dict = rand_voi(self.seeds, seg, True)
 
         print([score_dict[f"voi_split"], score_dict["voi_merge"]])
         return np.mean(a=[score_dict[f"voi_split"], score_dict["voi_merge"]])
