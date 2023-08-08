@@ -1,18 +1,12 @@
 import random
 import time
 import numpy as np
-from rusty_mws.rusty_segment_mws import *
 from ..algo import segment, extract_segmentation
 from funlib.persistence import open_ds, graphs, Array
-import mwatershed as mws
-
-
 from funlib.evaluate import rand_voi
 
-from .optimizer import Optimizer
 
-
-class GeneticOptimizer(Optimizer):
+class GeneticOptimizer():
     def __init__(
         self,
         fragments_file: str,
@@ -29,8 +23,6 @@ class GeneticOptimizer(Optimizer):
         db_name: str = "seg",
         merge_function:str="mwatershed",
     ) -> None:
-        super().__init__(param_space)
-
         # set bias ranges
         self.adj_bias_range: tuple = adj_bias_range
         self.lr_bias_range: tuple = lr_bias_range
@@ -86,10 +78,6 @@ class GeneticOptimizer(Optimizer):
             lr_bias += random.uniform(-mutation_strength, mutation_strength)
 
         return adj_bias, lr_bias
-
-    @staticmethod
-    def rag_db_stats(graph) -> tuple:
-        pass
 
     def optimize(self,
         num_generations:int,
