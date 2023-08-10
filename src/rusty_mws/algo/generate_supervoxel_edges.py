@@ -169,6 +169,8 @@ def blockwise_generate_supervoxel_edges(
         # separate affinities and offsets by range
         adjacents: list = [offset for offset in offsets if max(offset) <= 1]
         lr_offsets: list = offsets[len(adjacents) :]
+        if len(lr_offsets) == 0:
+            lr_offsets: list = [[0, 0, 0]]
         affs, lr_affs = affs[: len(adjacents)], affs[len(adjacents) :]
         if lr_bias_ratio != 0:
             for i, offset in enumerate(lr_offsets):
@@ -223,6 +225,7 @@ def blockwise_generate_supervoxel_edges(
             (slice(None, None),) + tuple(slice(0, -m) for m in max_lr_offset)
         ]
         lr_offset_frags = []
+        logger.info(len(lr_offsets))
         for offset in lr_offsets:
             lr_offset_frags.append(
                 fragments[
