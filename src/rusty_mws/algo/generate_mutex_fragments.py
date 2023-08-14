@@ -351,6 +351,7 @@ def blockwise_generate_mutex_fragments(
 
         return True
 
+    logger.info("Creating Daisy task . . .")
     # create Daisy distributed task
     task: daisy.Task = daisy.Task(
         "MutexFragmentsTask",
@@ -363,6 +364,7 @@ def blockwise_generate_mutex_fragments(
         read_write_conflict=False,
     )
 
+    logger.info("Running task blockwise . . .")
     # run task blockwise
     ret: bool = daisy.run_blockwise(tasks=[task])
     return ret
