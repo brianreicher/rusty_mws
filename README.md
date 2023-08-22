@@ -56,6 +56,8 @@ pip install git+https://github.com/brianreicher/rusty_mws.git
 
 For seedless Mutex Watershed segmentation, using MongoDB:
 ```python
+import rusty_mws
+
 pp: rusty_mws.PostProcessor = rusty_mws.PostProcessor(
             affs_file="../data/raw_predictions.zarr",
             affs_dataset="pred_affs_latest",
@@ -68,6 +70,8 @@ where:
 
 For seeded skeleton-corrected segmentation with Mutex Watershed fragments:
 ```python
+import rusty_mws
+
 pp: rusty_mws.PostProcessor = rusty_mws.PostProcessor(
             affs_file="../data/raw_predictions.zarr",
             affs_dataset="pred_affs_latest",
