@@ -302,7 +302,6 @@ class PostProcessor:
                 neighborhood_length=self.neighborhood_length,
                 mongo_port=self.mongo_port,
                 db_name=self.db_name,
-                use_mongo=self.use_mongo,
             )
         else:
             success = success & blockwise_generate_mutex_fragments(
@@ -325,7 +324,6 @@ class PostProcessor:
                 neighborhood_length=self.neighborhood_length,
                 mongo_port=self.mongo_port,
                 db_name=self.db_name,
-                use_mongo=self.use_mongo,
             )
 
         success = success & skel_correct_segmentation(
@@ -388,6 +386,7 @@ class PostProcessor:
             neighborhood_length=self.neighborhood_length,
             mongo_port=self.mongo_port,
             db_name=self.db_name,
+            use_mongo=self.use_mongo,
         ) & self.check_finished(step=1)
 
         success = success & blockwise_generate_supervoxel_edges(
@@ -403,6 +402,7 @@ class PostProcessor:
             neighborhood_length=self.neighborhood_length,
             mongo_port=self.mongo_port,
             db_name=self.db_name,
+            use_mongo=self.use_mongo,
         ) & self.check_finished(step=2)
 
         success = success & global_mutex_agglomeration(
@@ -414,6 +414,7 @@ class PostProcessor:
             lr_bias=self.lr_bias,
             mongo_port=self.mongo_port,
             db_name=self.db_name,
+            use_mongo=self.use_mongo,
         ) & self.check_finished(step=3)
 
         success = success & extract_segmentation(
@@ -432,8 +433,10 @@ class PostProcessor:
         self,
         adj_bias_range:tuple[float, float]=(-2.0, 2.0),
         lr_bias_range:tuple[float, float]=(-2.0, 2.0),
-    ) -> bool:
-        """Soley global agglomeration and segment extraction via Mutex Watershed - used to optimize weights during the global agglomeration step.
+        num_generations: int = 50,
+        population_size: int = 50,
+    ) -> list:
+        """Execute global agglomeration and segment extraction via Mutex Watershed - used to optimize weights.
 
         Args:
             adj_bias (``float``):
@@ -442,15 +445,15 @@ class PostProcessor:
             lr_bias (``float``):
                 Amount to bias long-range pixel weights when computing segmentation from the stored graph.
 
-            sample_name (``str``):
-                A string containing the sample name (run name of the experiment) to denote for the MongoDB collection_name.
+            num_generations (``int``):
+                Number of generations to muatate through.
+            
+            population_size (``int``):
+                Number of agglomerations in each generation.
 
-            fragments_file (``str``):
-                Path (relative or absolute) to the zarr file to read fragments from.
-
-            fragments_dataset (``str``):
-                The name of the fragments dataset to read from in the fragments_file.
-
+        Returns:
+            ``list``:
+                A list of the top-5 biases with optimal RAND_VOI scores.
         """
         gen_optim: GeneticOptimizer = GeneticOptimizer(fragments_file=self.fragments_file,
                                                         fragments_dataset=self.fragments_dataset,  
@@ -464,10 +467,10 @@ class PostProcessor:
                                                        merge_function=self.merge_function,
                                                        adj_bias_range=adj_bias_range,
                                                        lr_bias_range=lr_bias_range)
-        gen_optim.optimize(num_generations=50,
-                           population_size=50,)
+        best_biases: list = gen_optim.optimize(num_generations=num_generations,
+                           population_size=population_size,)
 
-        return True
+        return best_biases[:5]
     
     def check_finished(self, step:int) -> bool:
         if step >= self.n_steps:
