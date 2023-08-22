@@ -149,6 +149,9 @@ class PostProcessor:
         n_chunk_write_lut (int, optional):
             Number of chunks to write for each Daisy block in the LUT extraction task.
             Default is 1.
+        
+        n_steps (int, optional):
+            Number of steps to complete in the full MWS segmentation pipeline.
     """
 
     def __init__(
@@ -186,6 +189,7 @@ class PostProcessor:
         merge_function: Optional[str] = "mwatershed",
         nworkers_lut: Optional[int] = 25,
         n_chunk_write_lut: Optional[int] = 1,
+        n_steps: Optional[int] = 4,
     ) -> None:
         # dataset vars
         self.affs_file: str = affs_file
@@ -249,6 +253,9 @@ class PostProcessor:
         # MWS agglom vars
         self.adj_bias: float = adj_bias
         self.lr_bias: float = lr_bias
+
+        # pipeline vars
+        self.n_steps: int = n_steps
 
     def run_corrected_segmentation_pipeline(
         self,
@@ -377,7 +384,7 @@ class PostProcessor:
             neighborhood_length=self.neighborhood_length,
             mongo_port=self.mongo_port,
             db_name=self.db_name,
-        )
+        ) & self.check_finished(iteration=1)
 
         success = success & blockwise_generate_supervoxel_edges(
             sample_name=self.sample_name,
@@ -392,7 +399,7 @@ class PostProcessor:
             neighborhood_length=self.neighborhood_length,
             mongo_port=self.mongo_port,
             db_name=self.db_name,
-        )
+        ) & self.check_finished(iteration=2)
 
         success = success & global_mutex_agglomeration(
             sample_name=self.sample_name,
@@ -403,7 +410,7 @@ class PostProcessor:
             lr_bias=self.lr_bias,
             mongo_port=self.mongo_port,
             db_name=self.db_name,
-        )
+        ) & self.check_finished(iteration=3)
 
         success = success & extract_segmentation(
             fragments_file=self.fragments_file,
@@ -456,4 +463,9 @@ class PostProcessor:
         gen_optim.optimize(num_generations=50,
                            population_size=50,)
 
+        return True
+    
+    def check_finished(self, iteration:int) -> bool:
+        if iteration >= self.n_steps:
+            return False
         return True
