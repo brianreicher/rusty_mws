@@ -190,6 +190,7 @@ class PostProcessor:
         nworkers_lut: Optional[int] = 25,
         n_chunk_write_lut: Optional[int] = 1,
         n_steps: Optional[int] = 4,
+        use_mongo: Optional[bool] = True,
     ) -> None:
         # dataset vars
         self.affs_file: str = affs_file
@@ -229,6 +230,7 @@ class PostProcessor:
         self.mongo_port: int = mongo_port
         self.db_name: str = db_name
         self.sample_name: str = sample_name
+        self.use_mongo: bool = use_mongo
 
         # Daisy vars
         self.nworkers_frags: int = nworkers_frags
@@ -300,6 +302,7 @@ class PostProcessor:
                 neighborhood_length=self.neighborhood_length,
                 mongo_port=self.mongo_port,
                 db_name=self.db_name,
+                use_mongo=self.use_mongo,
             )
         else:
             success = success & blockwise_generate_mutex_fragments(
@@ -322,6 +325,7 @@ class PostProcessor:
                 neighborhood_length=self.neighborhood_length,
                 mongo_port=self.mongo_port,
                 db_name=self.db_name,
+                use_mongo=self.use_mongo,
             )
 
         success = success & skel_correct_segmentation(
@@ -384,7 +388,7 @@ class PostProcessor:
             neighborhood_length=self.neighborhood_length,
             mongo_port=self.mongo_port,
             db_name=self.db_name,
-        ) & self.check_finished(iteration=1)
+        ) & self.check_finished(step=1)
 
         success = success & blockwise_generate_supervoxel_edges(
             sample_name=self.sample_name,
@@ -399,7 +403,7 @@ class PostProcessor:
             neighborhood_length=self.neighborhood_length,
             mongo_port=self.mongo_port,
             db_name=self.db_name,
-        ) & self.check_finished(iteration=2)
+        ) & self.check_finished(step=2)
 
         success = success & global_mutex_agglomeration(
             sample_name=self.sample_name,
@@ -410,7 +414,7 @@ class PostProcessor:
             lr_bias=self.lr_bias,
             mongo_port=self.mongo_port,
             db_name=self.db_name,
-        ) & self.check_finished(iteration=3)
+        ) & self.check_finished(step=3)
 
         success = success & extract_segmentation(
             fragments_file=self.fragments_file,
@@ -424,7 +428,7 @@ class PostProcessor:
 
         return True
 
-    def optimize_pred_segmentation(  # TODO: implement genetic optimization
+    def optimize_pred_segmentation(
         self,
         adj_bias_range:tuple[float, float]=(-2.0, 2.0),
         lr_bias_range:tuple[float, float]=(-2.0, 2.0),
@@ -465,7 +469,7 @@ class PostProcessor:
 
         return True
     
-    def check_finished(self, iteration:int) -> bool:
-        if iteration >= self.n_steps:
+    def check_finished(self, step:int) -> bool:
+        if step >= self.n_steps:
             return False
         return True

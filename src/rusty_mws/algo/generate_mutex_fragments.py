@@ -38,6 +38,7 @@ def blockwise_generate_mutex_fragments(
     neighborhood_length: int = 12,
     mongo_port: int = 27017,
     db_name: str = "seg",
+    use_mongo: bool = True,
 ) -> bool:
     """Generates MWS fragments and saves nodes & weights in a RAG.
 
@@ -98,6 +99,9 @@ def blockwise_generate_mutex_fragments(
 
         db_name (``string``):
             Name of the specified MongoDB database to use at the RAG.
+        
+        use_mongo (``bool``):
+            Flag denoting whether to use a MongoDB RAG or a file-based NetworkX RAG.
 
         Returns:
             ``bool``:
@@ -160,35 +164,51 @@ def blockwise_generate_mutex_fragments(
         seeds = None
 
     if not training:
-        # open RAG DB
-        db_host: str = f"mongodb://localhost:{mongo_port}"
+        if use_mongo:
+            # open RAG DB
+            db_host: str = f"mongodb://localhost:{mongo_port}"
 
-        mongo_drop = pymongo.MongoClient(db_host)[db_name]
-        collection_names = mongo_drop.list_collection_names()
+            mongo_drop = pymongo.MongoClient(db_host)[db_name]
+            collection_names = mongo_drop.list_collection_names()
 
-        for collection_name in collection_names:
-            if sample_name in collection_name:
-                logger.info(f"Dropping {collection_name}")
-                mongo_drop[collection_name].drop()
+            for collection_name in collection_names:
+                if sample_name in collection_name:
+                    logger.info(f"Dropping {collection_name}")
+                    mongo_drop[collection_name].drop()
 
-        logger.info("Opening MongoDBGraphProvider...")
-        rag_provider = graphs.MongoDbGraphProvider(
-            db_name=db_name,
-            host=db_host,
-            mode="r+",
-            directed=False,
-            position_attribute=["center_z", "center_y", "center_x"],
-            edges_collection=f"{sample_name}_edges",
-            nodes_collection=f"{sample_name}_nodes",
-            meta_collection=f"{sample_name}_meta",
-        )
+            logger.info("Opening MongoDBGraphProvider...")
+            rag_provider = graphs.MongoDbGraphProvider(
+                db_name=db_name,
+                host=db_host,
+                mode="r+",
+                directed=False,
+                position_attribute=["center_z", "center_y", "center_x"],
+                edges_collection=f"{sample_name}_edges",
+                nodes_collection=f"{sample_name}_nodes",
+                meta_collection=f"{sample_name}_meta",
+            )
 
-        logger.info("MongoDB Provider opened")
+            logger.info("MongoDB Provider opened")
 
-        # open block done DB
-        mongo_client = pymongo.MongoClient(db_host)
-        db = mongo_client[db_name]
-        completed_collection = db[f"{sample_name}_fragment_blocks_extracted"]
+            # open block done DB
+            mongo_client = pymongo.MongoClient(db_host)
+            db = mongo_client[db_name]
+            completed_collection = db[f"{sample_name}_fragment_blocks_extracted"]
+        else:
+            logger.info("Opening FileGraphProvider...")
+            rag_provider = graphs.FileGraphProvider(
+                directory="./RAG",
+                mode="r+",
+                directed=False,
+                position_attribute=["center_z", "center_y", "center_x"],
+                edges_collection=f"{sample_name}_edges",
+                nodes_collection=f"{sample_name}_nodes",
+                position_attribute=["center_z", "center_y", "center_x"],
+            )
+
+            logger.info("MongoDB Provider opened")
+
+
     else:
         rag_provider = None
         completed_collection = None

@@ -28,6 +28,7 @@ def blockwise_generate_supervoxel_edges(
     neighborhood_length: int = 12,
     mongo_port: int = 27017,
     db_name: str = "seg",
+    use_mongo: bool = True,
 ) -> bool:
     """Generates supervoxel edges and stores (u, v, adj, lr) weights in a RAG.
 
@@ -68,6 +69,8 @@ def blockwise_generate_supervoxel_edges(
         db_name (``string``):
             Name of the specified MongoDB database to use at the RAG.
 
+        use_mongo (``bool``):
+            Flag denoting whether to use a MongoDB RAG or a file-based NetworkX RAG.
     Returns:
         ``bool``:
             Returns ``true`` if all Daisy tasks complete successfully.
@@ -91,19 +94,30 @@ def blockwise_generate_supervoxel_edges(
     fragments: Array = open_ds(fragments_file, fragments_dataset, mode="r+")
 
     # open RAG DB
-    db_host: str = f"mongodb://localhost:{mongo_port}"
+    if use_mongo:
+        db_host: str = f"mongodb://localhost:{mongo_port}"
 
-    logging.info("Opening MongoDBGraphProvider...")
-    rag_provider = graphs.MongoDbGraphProvider(
-        db_name=db_name,
-        host=db_host,
-        mode="r+",
-        directed=False,
-        nodes_collection=sample_name + "_nodes",
-        edges_collection=sample_name + "_edges_" + merge_function,
-        position_attribute=["center_z", "center_y", "center_x"],
-    )
-    logging.info("MongoDB Graph Provider opened")
+        logging.info("Opening MongoDBGraphProvider...")
+        rag_provider = graphs.MongoDbGraphProvider(
+            db_name=db_name,
+            host=db_host,
+            mode="r+",
+            directed=False,
+            nodes_collection=sample_name + "_nodes",
+            edges_collection=sample_name + "_edges_" + merge_function,
+            position_attribute=["center_z", "center_y", "center_x"],
+        )
+    else:
+        logging.info("Opening FileGraphProvider...")
+        rag_provider = graphs.FileGraphProvider(
+            directory="./RAG",
+            mode="r+",
+            directed=False,
+            nodes_collection=sample_name + "_nodes",
+            edges_collection=sample_name + "_edges_" + merge_function,
+            position_attribute=["center_z", "center_y", "center_x"],
+        )
+    logging.info("Graph Provider opened")
 
     # open block done DB
     client = pymongo.MongoClient(db_host)

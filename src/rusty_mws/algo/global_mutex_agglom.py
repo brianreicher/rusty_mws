@@ -20,6 +20,7 @@ def global_mutex_agglomeration(
     lr_bias: float = -1.2,
     mongo_port: int = 27017,
     db_name: str = "seg",
+    use_mongo: bool = True,
 ) -> bool:
     """Performs global agglomeration on stored MWS fragments, writing new segment IDs into a LUT for relabeling.
 
@@ -47,25 +48,39 @@ def global_mutex_agglomeration(
 
         db_name (``string``):
             Name of the specified MongoDB database to use at the RAG.
+        
+        use_mongo (``bool``):
+            Flag denoting whether to use a MongoDB RAG or a file-based NetworkX RAG.
 
     Returns:
         ``bool``:
             Returns ``true`` if all Daisy tasks complete successfully.
     """
+    if use_mongo:
+        db_host: str = f"mongodb://localhost:{mongo_port}"
+        print("Reading graph from DB ", db_name)
+        start: float = time.time()
 
-    db_host: str = f"mongodb://localhost:{mongo_port}"
-    print("Reading graph from DB ", db_name)
-    start: float = time.time()
+        graph_provider = graphs.MongoDbGraphProvider(
+            db_name=db_name,
+            host=db_host,
+            mode="r+",
+            nodes_collection=f"{sample_name}_nodes",
+            meta_collection=f"{sample_name}_meta",
+            edges_collection=sample_name + "_edges_" + merge_function,
+            position_attribute=["center_z", "center_y", "center_x"],
+        )
+    else:
+        print("Reading graph from DB ", db_name)
+        start: float = time.time()
 
-    graph_provider = graphs.MongoDbGraphProvider(
-        db_name,
-        db_host,
-        mode="r+",
-        nodes_collection=f"{sample_name}_nodes",
-        meta_collection=f"{sample_name}_meta",
-        edges_collection=sample_name + "_edges_" + merge_function,
-        position_attribute=["center_z", "center_y", "center_x"],
-    )
+        graph_provider = graphs.FileGraphProvider(
+            directory="./RAG",
+            mode="r+",
+            nodes_collection=f"{sample_name}_nodes",
+            edges_collection=sample_name + "_edges_" + merge_function,
+            position_attribute=["center_z", "center_y", "center_x"],
+        )
 
     print("Got Graph provider")
 
