@@ -198,14 +198,15 @@ def blockwise_generate_mutex_fragments(
             logger.info("Opening FileGraphProvider...")
             rag_provider = graphs.FileGraphProvider(
                 directory="./RAG",
+                chunk_size=chunk_shape,
                 mode="r+",
                 directed=False,
+                total_roi=total_roi_daisy,
                 position_attribute=["center_z", "center_y", "center_x"],
                 edges_collection=f"{sample_name}_edges",
                 nodes_collection=f"{sample_name}_nodes",
-                position_attribute=["center_z", "center_y", "center_x"],
             )
-
+            completed_collection=None
             logger.info("MongoDB Provider opened")
 
 
@@ -363,7 +364,8 @@ def blockwise_generate_mutex_fragments(
             }
 
             # add block to completed graph
-            completed_collection.insert_one(document=document)
+            if completed_collection is not None:
+                completed_collection.insert_one(document=document)
 
             logger.info(f"block information: {document}")
         logger.info(f"releasing block: {block}")

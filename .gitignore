@@ -165,3 +165,5 @@ data/
 *.out
 *.err
 daisy_logs/
+
+test.py
