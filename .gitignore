@@ -165,5 +165,8 @@ data/
 *.out
 *.err
 daisy_logs/
-
+RAG/
+build/
+data/
+rusty_mws.egg_info/
 test.py
