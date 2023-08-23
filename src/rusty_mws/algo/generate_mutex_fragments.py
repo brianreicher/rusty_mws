@@ -198,7 +198,7 @@ def blockwise_generate_mutex_fragments(
             logger.info("Opening FileGraphProvider...")
             rag_provider = graphs.FileGraphProvider(
                 directory="./RAG",
-                chunk_size=chunk_shape,
+                chunk_size=tuple(chunk_shape),
                 mode="r+",
                 directed=False,
                 total_roi=total_roi_daisy,
