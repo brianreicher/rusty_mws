@@ -1,6 +1,7 @@
 import logging
 import time
-
+import os
+import shutil
 import numpy as np
 from scipy.ndimage import gaussian_filter, measurements
 
@@ -196,6 +197,13 @@ def blockwise_generate_mutex_fragments(
             completed_collection = db[f"{sample_name}_fragment_blocks_extracted"]
         else:
             logger.info("Opening FileGraphProvider...")
+
+            if os.path.exists("./RAG"):
+                try:
+                    shutil.rmtree("./RAG")
+                except:
+                    pass
+
             rag_provider = graphs.FileGraphProvider(
                 directory="./RAG",
                 chunk_size=tuple(chunk_shape),
@@ -208,8 +216,6 @@ def blockwise_generate_mutex_fragments(
             )
             completed_collection=None
             logger.info("MongoDB Provider opened")
-
-
     else:
         rag_provider = None
         completed_collection = None
@@ -376,7 +382,7 @@ def blockwise_generate_mutex_fragments(
     logger.info("Creating Daisy task . . .")
     # create Daisy distributed task
     task: daisy.Task = daisy.Task(
-        "MutexFragmentsTask",
+        task_id="MutexFragmentsTask",
         total_roi=total_roi_daisy,
         read_roi=read_roi,
         write_roi=write_roi,
@@ -385,7 +391,6 @@ def blockwise_generate_mutex_fragments(
         fit="shrink",
         read_write_conflict=False,
     )
-
     logger.info("Running task blockwise . . .")
     # run task blockwise
     ret: bool = daisy.run_blockwise(tasks=[task])
