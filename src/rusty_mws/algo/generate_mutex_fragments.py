@@ -159,7 +159,7 @@ def blockwise_generate_mutex_fragments(
         mask = None
 
     if seeds_file is not None:
-        logger.info("Reading seeds from %s", seeds_file)
+        logger.info("Reading seeds from %s", f"{seeds_file}/{seeds_dataset}")
         seeds: Array = open_ds(seeds_file, seeds_dataset, mode="r")
     else:
         seeds = None
@@ -292,14 +292,21 @@ def blockwise_generate_mutex_fragments(
         logger.info("Performing MWS")
 
         if seeds is not None:
-            these_seeds: Array = seeds.intersect(block.read_roi)
-            these_seeds.materialize()
-            these_seeds.data = these_seeds.data.astype(np.uint64)
-            fragments_data = mws.agglom(
-                these_affs.data + shift + random_noise + smoothed_affs,
-                offsets=offsets,
-                seeds=these_seeds.data,
-            )
+            try:
+                these_seeds: Array = seeds.intersect(block.read_roi)
+                these_seeds.materialize()
+                these_seeds.data = these_seeds.data.astype(np.uint64)
+                fragments_data = mws.agglom(
+                    these_affs.data + shift + random_noise + smoothed_affs,
+                    offsets=offsets,
+                    seeds=these_seeds.data,
+                )
+            except:
+                logger.info("Running unseeded agglom")
+                fragments_data = mws.agglom(
+                    these_affs.data + shift + random_noise + smoothed_affs,
+                    offsets=offsets,
+                )
         else:
             logger.info("Running unseeded agglom")
             fragments_data = mws.agglom(
