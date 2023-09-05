@@ -186,7 +186,7 @@ def blockwise_generate_supervoxel_edges(
         if len(lr_offsets) == 0:
             lr_offsets: list = [[0, 0, 0]]
         affs, lr_affs = affs[: len(adjacents)], affs[len(adjacents) :]
-        if lr_bias_ratio != 0:
+        if lr_bias_ratio != 0 and len(lr_offsets)>3:
             for i, offset in enumerate(lr_offsets):
                 lr_affs[i] += np.linalg.norm(offset) * lr_bias_ratio
 
