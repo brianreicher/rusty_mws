@@ -252,8 +252,8 @@ def blockwise_generate_supervoxel_edges(
         lr_offset_frags = np.stack(lr_offset_frags, axis=0)
         lr_mask = lr_offset_frags != base_lr_fragments
         # cantor pairing function
-        if len(base_lr_fragments) == 3:
-            base_lr_fragments = (0,0,0,0)
+        if base_lr_fragments.shape == (0,0,0):
+            base_lr_fragments = np.ndarray(shape=lr_offset_frags.shape, dtype=np.uint64)
 
         lr_mismatched_labels = (
             (lr_offset_frags + base_lr_fragments)
@@ -264,6 +264,9 @@ def blockwise_generate_supervoxel_edges(
         lr_mismatched_ids: np.ndarray = np.array(
             [x for x in np.unique(lr_mismatched_labels) if x != 0]
         )
+        if base_lr_affs.shape == (0,0,0,0):
+            base_lr_affs = np.ndarray(shape=lr_mismatched_labels.shape, dtype=np.uint64)
+        
         lr_adjacent_score = measurements.median(
             base_lr_affs,
             lr_mismatched_labels,
