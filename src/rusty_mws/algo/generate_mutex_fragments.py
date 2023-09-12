@@ -100,7 +100,7 @@ def blockwise_generate_mutex_fragments(
 
         db_name (``string``):
             Name of the specified MongoDB database to use at the RAG.
-        
+
         use_mongo (``bool``):
             Flag denoting whether to use a MongoDB RAG or a file-based NetworkX RAG.
 
@@ -214,7 +214,7 @@ def blockwise_generate_mutex_fragments(
                 edges_collection=f"{sample_name}_edges",
                 nodes_collection=f"{sample_name}_nodes",
             )
-            completed_collection=None
+            completed_collection = None
             logger.info("MongoDB Provider opened")
     else:
         rag_provider = None

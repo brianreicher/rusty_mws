@@ -7,7 +7,7 @@ from funlib.persistence import open_ds, graphs, Array
 from funlib.evaluate import rand_voi
 
 
-class GeneticOptimizer():
+class GeneticOptimizer:
     def __init__(
         self,
         fragments_file: str,
@@ -16,13 +16,13 @@ class GeneticOptimizer():
         seg_dataset: str,
         seeds_file: str,
         seeds_dataset: str,
-        sample_name:str,
-        param_space: dict, 
+        sample_name: str,
+        param_space: dict,
         adj_bias_range: tuple,
         lr_bias_range: tuple,
-        db_host: str =  "mongodb://localhost:27017",
+        db_host: str = "mongodb://localhost:27017",
         db_name: str = "seg",
-        merge_function:str="mwatershed",
+        merge_function: str = "mwatershed",
     ) -> None:
         # set bias ranges
         self.adj_bias_range: tuple = adj_bias_range
@@ -39,7 +39,7 @@ class GeneticOptimizer():
             edges_collection=self.sample_name + "_edges_" + merge_function,
             position_attribute=["center_z", "center_y", "center_x"],
         )
-        
+
         # set the seeds and frags arrays
         self.fragments_file: str = fragments_file
         self.fragments_dataset: str = fragments_dataset
@@ -52,7 +52,7 @@ class GeneticOptimizer():
         seeds: Array = open_ds(seeds_file, seeds_dataset)
         seeds = self.seeds.to_ndarray(self.frags.roi)
         self.seeds: np.ndarray = np.asarray(seeds, np.uint64)
-    
+
     @staticmethod
     def crossover(parent1, parent2) -> tuple:
         # Perform crossover by blending the weight biases of the parents
@@ -80,9 +80,10 @@ class GeneticOptimizer():
 
         return adj_bias, lr_bias
 
-    def optimize(self,
-        num_generations:int,
-        population_size:int,
+    def optimize(
+        self,
+        num_generations: int,
+        population_size: int,
     ) -> list:
         # Initialize the population
         population: list = []
@@ -182,11 +183,18 @@ class GeneticOptimizer():
         lr_scores: np.ndarray,
         out_dir: str,
     ) -> np.floating:
-        
         segment(
-            edges, adj_scores, lr_scores, self.merge_function, out_dir, adj_bias, lr_bias
+            edges,
+            adj_scores,
+            lr_scores,
+            self.merge_function,
+            out_dir,
+            adj_bias,
+            lr_bias,
         )
-        extract_segmentation(self.fragments_file, self.fragments_dataset, self.sample_name)
+        extract_segmentation(
+            self.fragments_file, self.fragments_dataset, self.sample_name
+        )
 
         seg: Array = open_ds(filename=self.seg_file, ds_name=self.seg_ds)
 

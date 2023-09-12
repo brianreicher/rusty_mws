@@ -14,8 +14,8 @@ logging.getLogger().setLevel(logging.INFO)
 def extract_segmentation(
     fragments_file: str,
     fragments_dataset: str,
-    seg_file:str,
-    seg_dataset:str,
+    seg_file: str,
+    seg_dataset: str,
     nworkers: int = 20,
     merge_function: str = "mwatershed",
     n_chunk_write: int = 1,
@@ -28,7 +28,7 @@ def extract_segmentation(
 
         fragments_dataset (``str``):
             The name of the fragments dataset to read from in the fragments file.
-        
+
         seg_file (str, optional):
             Path (relative or absolute) to the zarr file to write fragments to.
 

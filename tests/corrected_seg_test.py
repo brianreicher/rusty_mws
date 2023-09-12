@@ -4,8 +4,10 @@ import numpy as np
 
 import pytest
 
+
 def test_dummy() -> None:
     assert True is True
+
 
 # def test_generate_fragments() -> None:
 #     task_completion: bool = rusty_mws.algo.blockwise_generate_mutex_fragments(

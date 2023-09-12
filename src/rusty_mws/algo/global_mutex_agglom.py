@@ -48,7 +48,7 @@ def global_mutex_agglomeration(
 
         db_name (``string``):
             Name of the specified MongoDB database to use at the RAG.
-        
+
         use_mongo (``bool``):
             Flag denoting whether to use a MongoDB RAG or a file-based NetworkX RAG.
 

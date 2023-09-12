@@ -149,7 +149,7 @@ class PostProcessor:
         n_chunk_write_lut (int, optional):
             Number of chunks to write for each Daisy block in the LUT extraction task.
             Default is 1.
-        
+
         n_steps (int, optional):
             Number of steps to complete in the full MWS segmentation pipeline.
     """
@@ -366,56 +366,68 @@ class PostProcessor:
 
         success: bool = True
 
-        success = success & blockwise_generate_mutex_fragments(
-            sample_name=self.sample_name,
-            affs_file=self.affs_file,
-            affs_dataset=self.affs_dataset,
-            fragments_file=self.fragments_file,
-            fragments_dataset=self.fragments_dataset,
-            context=self.context,
-            filter_val=self.filter_val,
-            seeds_file=None,
-            seeds_dataset=None,
-            mask_file=self.mask_file,
-            mask_dataset=self.mask_dataset,
-            training=False,
-            nworkers=self.nworkers_frags,
-            n_chunk_write=self.n_chunk_write_frags,
-            lr_bias_ratio=self.lr_bias_ratio,
-            adjacent_edge_bias=self.adjacent_edge_bias,
-            neighborhood_length=self.neighborhood_length,
-            mongo_port=self.mongo_port,
-            db_name=self.db_name,
-            use_mongo=self.use_mongo,
-        ) & self.check_finished(step=1)
+        success = (
+            success
+            & blockwise_generate_mutex_fragments(
+                sample_name=self.sample_name,
+                affs_file=self.affs_file,
+                affs_dataset=self.affs_dataset,
+                fragments_file=self.fragments_file,
+                fragments_dataset=self.fragments_dataset,
+                context=self.context,
+                filter_val=self.filter_val,
+                seeds_file=None,
+                seeds_dataset=None,
+                mask_file=self.mask_file,
+                mask_dataset=self.mask_dataset,
+                training=False,
+                nworkers=self.nworkers_frags,
+                n_chunk_write=self.n_chunk_write_frags,
+                lr_bias_ratio=self.lr_bias_ratio,
+                adjacent_edge_bias=self.adjacent_edge_bias,
+                neighborhood_length=self.neighborhood_length,
+                mongo_port=self.mongo_port,
+                db_name=self.db_name,
+                use_mongo=self.use_mongo,
+            )
+            & self.check_finished(step=1)
+        )
 
-        success = success & blockwise_generate_supervoxel_edges(
-            sample_name=self.sample_name,
-            affs_file=self.affs_file,
-            affs_dataset=self.affs_dataset,
-            fragments_file=self.fragments_file,
-            fragments_dataset=self.fragments_dataset,
-            context=self.context,
-            nworkers=self.nworkers_supervox,
-            merge_function=self.merge_function,
-            lr_bias_ratio=self.lr_bias_ratio,
-            neighborhood_length=self.neighborhood_length,
-            mongo_port=self.mongo_port,
-            db_name=self.db_name,
-            use_mongo=self.use_mongo,
-        ) & self.check_finished(step=2)
+        success = (
+            success
+            & blockwise_generate_supervoxel_edges(
+                sample_name=self.sample_name,
+                affs_file=self.affs_file,
+                affs_dataset=self.affs_dataset,
+                fragments_file=self.fragments_file,
+                fragments_dataset=self.fragments_dataset,
+                context=self.context,
+                nworkers=self.nworkers_supervox,
+                merge_function=self.merge_function,
+                lr_bias_ratio=self.lr_bias_ratio,
+                neighborhood_length=self.neighborhood_length,
+                mongo_port=self.mongo_port,
+                db_name=self.db_name,
+                use_mongo=self.use_mongo,
+            )
+            & self.check_finished(step=2)
+        )
 
-        success = success & global_mutex_agglomeration(
-            sample_name=self.sample_name,
-            fragments_file=self.fragments_file,
-            fragments_dataset=self.fragments_dataset,
-            merge_function=self.merge_function,
-            adj_bias=self.adj_bias,
-            lr_bias=self.lr_bias,
-            mongo_port=self.mongo_port,
-            db_name=self.db_name,
-            use_mongo=self.use_mongo,
-        ) & self.check_finished(step=3)
+        success = (
+            success
+            & global_mutex_agglomeration(
+                sample_name=self.sample_name,
+                fragments_file=self.fragments_file,
+                fragments_dataset=self.fragments_dataset,
+                merge_function=self.merge_function,
+                adj_bias=self.adj_bias,
+                lr_bias=self.lr_bias,
+                mongo_port=self.mongo_port,
+                db_name=self.db_name,
+                use_mongo=self.use_mongo,
+            )
+            & self.check_finished(step=3)
+        )
 
         success = success & extract_segmentation(
             fragments_file=self.fragments_file,
@@ -431,8 +443,8 @@ class PostProcessor:
 
     def optimize_pred_segmentation(
         self,
-        adj_bias_range:tuple[float, float]=(-2.0, 2.0),
-        lr_bias_range:tuple[float, float]=(-2.0, 2.0),
+        adj_bias_range: tuple[float, float] = (-2.0, 2.0),
+        lr_bias_range: tuple[float, float] = (-2.0, 2.0),
         num_generations: int = 50,
         population_size: int = 50,
     ) -> list:
@@ -447,7 +459,7 @@ class PostProcessor:
 
             num_generations (``int``):
                 Number of generations to muatate through.
-            
+
             population_size (``int``):
                 Number of agglomerations in each generation.
 
@@ -455,24 +467,28 @@ class PostProcessor:
             ``list``:
                 A list of the top-5 biases with optimal RAND_VOI scores.
         """
-        gen_optim: GeneticOptimizer = GeneticOptimizer(fragments_file=self.fragments_file,
-                                                        fragments_dataset=self.fragments_dataset,  
-                                                        seg_file=self.seg_file,
-                                                        seg_dataset=self.seg_dataset,
-                                                        seeds_file=self.seeds_file,
-                                                        seeds_dataset=self.seeds_dataset,
-                                                        sample_name=self.sample_name,
-                                                       db_host=f"mongodb://localhost:{self.mongo_port}",
-                                                       db_name=self.db_name,
-                                                       merge_function=self.merge_function,
-                                                       adj_bias_range=adj_bias_range,
-                                                       lr_bias_range=lr_bias_range)
-        best_biases: list = gen_optim.optimize(num_generations=num_generations,
-                           population_size=population_size,)
+        gen_optim: GeneticOptimizer = GeneticOptimizer(
+            fragments_file=self.fragments_file,
+            fragments_dataset=self.fragments_dataset,
+            seg_file=self.seg_file,
+            seg_dataset=self.seg_dataset,
+            seeds_file=self.seeds_file,
+            seeds_dataset=self.seeds_dataset,
+            sample_name=self.sample_name,
+            db_host=f"mongodb://localhost:{self.mongo_port}",
+            db_name=self.db_name,
+            merge_function=self.merge_function,
+            adj_bias_range=adj_bias_range,
+            lr_bias_range=lr_bias_range,
+        )
+        best_biases: list = gen_optim.optimize(
+            num_generations=num_generations,
+            population_size=population_size,
+        )
 
         return best_biases[:5]
-    
-    def check_finished(self, step:int) -> bool:
+
+    def check_finished(self, step: int) -> bool:
         if step >= self.n_steps:
             return False
         return True
