@@ -8,7 +8,7 @@ from funlib.persistence import open_ds, graphs, Array
 from funlib.evaluate import rand_voi
 
 
-class GeneticOptimizer:
+class GeneticOptimizer():
     def __init__(
         self,
         fragments_file: str,
