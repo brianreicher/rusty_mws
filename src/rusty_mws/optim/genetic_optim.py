@@ -40,7 +40,7 @@ class GeneticOptimizer():
             position_attribute=["center_z", "center_y", "center_x"],
         )
         self.merge_function: str = merge_function
-        
+
         # set the seeds and frags arrays
         self.fragments_file: str = fragments_file
         self.fragments_dataset: str = fragments_dataset
@@ -201,7 +201,8 @@ class GeneticOptimizer():
         extract_segmentation(
             fragments_file=self.fragments_file, 
             fragments_dataset=self.fragments_dataset, 
-            seg_file=self.sample_name
+            seg_file=self.sample_name,
+            seg_dataset=self.seg_dataset,
         )
 
         seg: Array = open_ds(filename=self.seg_file, ds_name=self.seg_ds)
