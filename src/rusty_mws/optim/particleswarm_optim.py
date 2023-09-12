@@ -1,22 +1,36 @@
 import random
-from .optimizer import Optimizer
+from .base_optimizer import OptimizerBase
 
 
-class ParticleSwarmOptimizer(Optimizer):
+class ParticleSwarmOptimizer(OptimizerBase):
     def __init__(
         self,
-        param_space,
-        swarm_size=30,
-        cognitive_weight=0.5,
-        social_weight=0.5,
-        inertia_weight=0.8,
-    ):
-        super().__init__(param_space)
-        self.swarm_size = swarm_size
-        self.cognitive_weight = cognitive_weight
-        self.social_weight = social_weight
-        self.inertia_weight = inertia_weight
-        self.swarm = []
+        fragments_file: str,
+        fragments_dataset: str,
+        seg_file: str,
+        seg_dataset: str,
+        seeds_file: str,
+        seeds_dataset: str,
+        sample_name: str,
+        adj_bias_range: tuple,
+        lr_bias_range: tuple,
+        db_host: str = "mongodb://localhost:27017",
+        db_name: str = "seg",
+        merge_function: str = "mwatershed",
+    ) -> None:
+        super().__init__(
+                        fragments_file=fragments_file,
+                        fragments_dataset=fragments_dataset,
+                        seg_file=seg_file,
+                        seg_dataset=seg_dataset,
+                        seeds_file=seeds_file,
+                        seeds_dataset=seeds_dataset,
+                        sample_name=sample_name,
+                        adj_bias_range=adj_bias_range,
+                        lr_bias_range=lr_bias_range,
+                        db_host=db_host,
+                        db_name=db_name,
+                        merge_function=merge_function,)
 
     def initialize_population(self, population_size):
         self.swarm = []
