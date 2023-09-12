@@ -21,35 +21,40 @@ class GeneticOptimizer(OptimizerBase):
         merge_function: str = "mwatershed",
     ) -> None:
         super().__init__(
-                        fragments_file=fragments_file,
-                        fragments_dataset=fragments_dataset,
-                        seg_file=seg_file,
-                        seg_dataset=seg_dataset,
-                        seeds_file=seeds_file,
-                        seeds_dataset=seeds_dataset,
-                        sample_name=sample_name,
-                        adj_bias_range=adj_bias_range,
-                        lr_bias_range=lr_bias_range,
-                        db_host=db_host,
-                        db_name=db_name,
-                        merge_function=merge_function,)
+            fragments_file=fragments_file,
+            fragments_dataset=fragments_dataset,
+            seg_file=seg_file,
+            seg_dataset=seg_dataset,
+            seeds_file=seeds_file,
+            seeds_dataset=seeds_dataset,
+            sample_name=sample_name,
+            adj_bias_range=adj_bias_range,
+            lr_bias_range=lr_bias_range,
+            db_host=db_host,
+            db_name=db_name,
+            merge_function=merge_function,
+        )
 
     @staticmethod
-    def crossover(parent1, parent2) -> tuple:
+    def crossover(parent1: tuple, parent2: tuple) -> tuple:
         # Perform crossover by blending the weight biases of the parents
-        alpha: float = random.uniform(0.0, 1.0)  # Blend factor
+        alpha: float = random.uniform(a=0.0, b=1.0)  # Blend factor
 
         adj_bias_parent1, lr_bias_parent1 = parent1[0], parent1[1]
         adj_bias_parent2, lr_bias_parent2 = parent2[0], parent2[1]
 
         # Blend the weight biases
-        adj_bias_child: float = alpha * adj_bias_parent1 + (1 - alpha) * adj_bias_parent2
+        adj_bias_child: float = (
+            alpha * adj_bias_parent1 + (1 - alpha) * adj_bias_parent2
+        )
         lr_bias_child: float = alpha * lr_bias_parent1 + (1 - alpha) * lr_bias_parent2
 
         return adj_bias_child, lr_bias_child
 
     @staticmethod
-    def mutate(individual: tuple, mutation_rate:float=0.1, mutation_strength:float=0.1) -> tuple:
+    def mutate(
+        individual: tuple, mutation_rate: float = 0.1, mutation_strength: float = 0.1
+    ) -> tuple:
         # Perform mutation by adding random noise to the weight biases
         adj_bias, lr_bias = individual
 
@@ -124,7 +129,9 @@ class GeneticOptimizer(OptimizerBase):
             score: list = [x[2] for x in fvals]
 
             # Save the biases as an npz file
-            np.savez(file=f"./optimal_biases_{generation}.npz", adj=adj, lr=lr, score=score)
+            np.savez(
+                file=f"./optimal_biases_{generation}.npz", adj=adj, lr=lr, score=score
+            )
 
         # Return the best weight biases found in the last generation
         best_biases: list = sorted(fitness_values, key=lambda x: x[2], reverse=True)[

@@ -19,18 +19,19 @@ class ParticleSwarmOptimizer(OptimizerBase):
         merge_function: str = "mwatershed",
     ) -> None:
         super().__init__(
-                        fragments_file=fragments_file,
-                        fragments_dataset=fragments_dataset,
-                        seg_file=seg_file,
-                        seg_dataset=seg_dataset,
-                        seeds_file=seeds_file,
-                        seeds_dataset=seeds_dataset,
-                        sample_name=sample_name,
-                        adj_bias_range=adj_bias_range,
-                        lr_bias_range=lr_bias_range,
-                        db_host=db_host,
-                        db_name=db_name,
-                        merge_function=merge_function,)
+            fragments_file=fragments_file,
+            fragments_dataset=fragments_dataset,
+            seg_file=seg_file,
+            seg_dataset=seg_dataset,
+            seeds_file=seeds_file,
+            seeds_dataset=seeds_dataset,
+            sample_name=sample_name,
+            adj_bias_range=adj_bias_range,
+            lr_bias_range=lr_bias_range,
+            db_host=db_host,
+            db_name=db_name,
+            merge_function=merge_function,
+        )
 
     def initialize_population(self, population_size):
         self.swarm = []

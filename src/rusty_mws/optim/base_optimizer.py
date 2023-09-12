@@ -99,8 +99,8 @@ class OptimizerBase:
             lr_bias=lr_bias,
         )
         extract_segmentation(
-            fragments_file=self.fragments_file, 
-            fragments_dataset=self.fragments_dataset, 
+            fragments_file=self.fragments_file,
+            fragments_dataset=self.fragments_dataset,
             seg_file=self.seg_file,
             seg_dataset=self.seg_dataset,
         )
@@ -115,4 +115,3 @@ class OptimizerBase:
 
         print([score_dict[f"voi_split"], score_dict["voi_merge"]])
         return np.mean(a=[score_dict[f"voi_split"], score_dict["voi_merge"]])
-
