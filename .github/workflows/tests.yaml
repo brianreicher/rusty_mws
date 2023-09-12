@@ -21,12 +21,13 @@ jobs:
 
       - name: Install boost
         run: sudo apt install libboost-all-dev
-
-      - name: Install dependencies
-        run: pip install -r dev_requirments.txt
-        
+      
       - name: Install graph tools
         run: conda install -c conda-forge -c ostrokach-forge -c pkgw-forge graph-tool
+      
+      - name: Install dependencies
+        run: pip install -r dev_requirments.txt
+
       
       - name: Test with pytest
         run: pytest tests
