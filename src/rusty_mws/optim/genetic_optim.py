@@ -4,6 +4,7 @@ import time
 import numpy as np
 from ..algo import segment, extract_segmentation
 from funlib.persistence import open_ds, graphs, Array
+
 # from funlib.evaluate import rand_voi
 
 
