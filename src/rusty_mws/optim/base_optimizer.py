@@ -105,7 +105,7 @@ class OptimizerBase:
             seg_dataset=self.seg_dataset,
         )
 
-        seg: Array = open_ds(filename=self.seg_file, ds_name=self.seg_ds)
+        seg: Array = open_ds(filename=self.seg_file, ds_name=self.seg_dataset)
 
         seg: np.ndarray = seg.to_ndarray()
 
