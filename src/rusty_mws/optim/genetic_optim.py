@@ -26,7 +26,8 @@ class GeneticOptimizer(OptimizerBase):
         db_name: str = "seg",
         merge_function: str = "mwatershed",
     ) -> None:
-        super.__init__(fragments_file,
+        super().__init__(
+                        fragments_file,
                         fragments_dataset,
                         seg_file,
                         seg_dataset,
