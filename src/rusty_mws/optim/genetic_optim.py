@@ -39,7 +39,8 @@ class GeneticOptimizer():
             edges_collection=self.sample_name + "_edges_" + merge_function,
             position_attribute=["center_z", "center_y", "center_x"],
         )
-
+        self.merge_function: str = merge_function
+        
         # set the seeds and frags arrays
         self.fragments_file: str = fragments_file
         self.fragments_dataset: str = fragments_dataset
