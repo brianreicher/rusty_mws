@@ -11,10 +11,10 @@ fragments_data = np.array([1, 2, 1, 3])
 filter_val = 0.5
 
 
-def test_filter_below_threshold():
+def test_filter_partial():
     # Test when all fragments should be filtered out
     rusty_mws.utils.filter_fragments(affs_data, fragments_data, filter_val)
-    assert np.array_equal(fragments_data, np.array([]))
+    assert np.array_equal(fragments_data, np.array([0, 0, 0, 3]))
 
 
 def test_filter_above_threshold():
