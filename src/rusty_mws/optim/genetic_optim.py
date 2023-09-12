@@ -54,7 +54,7 @@ class GeneticOptimizer():
         self.seeds: np.ndarray = np.asarray(a=seeds, dtype=np.uint64)
 
         # handle db fetch
-        print("Reading graph from DB ", self.db_name)
+        print("Reading graph from DB ", db_name)
         start: float = time.time()
 
         print("Got Graph provider")
@@ -62,7 +62,7 @@ class GeneticOptimizer():
         roi = self.frags.roi
 
         print("Getting graph for roi %s" % roi)
-        graph = self.graph_provider.get_graph(roi)
+        graph = self.graph_provider.get_graph(roi=roi)
 
         print("Read graph in %.3fs" % (time.time() - start))
 
