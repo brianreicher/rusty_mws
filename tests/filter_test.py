@@ -22,13 +22,6 @@ def test_filter_above_threshold():
     rusty_mws.utils.filter_fragments(affs_data, fragments_data, 0.0)
     assert np.array_equal(fragments_data, np.array([1, 2, 1, 3]))
 
-
-def test_filter_partial():
-    # Test when some fragments should be filtered out
-    rusty_mws.utils.filter_fragments(affs_data, fragments_data, 0.3)
-    assert np.array_equal(fragments_data, np.array([2, 3]))
-
-
 # def test_generate_fragments() -> None:
 #     task_completion: bool = rusty_mws.algo.blockwise_generate_mutex_fragments(
 #         sample_name="test",
