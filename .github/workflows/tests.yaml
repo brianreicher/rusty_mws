@@ -21,9 +21,12 @@ jobs:
 
       - name: Install boost
         run: sudo apt install libboost-all-dev
-      
+
+      - name: Set up Conda
+        uses: conda-incubator/setup-miniconda@v2
+
       - name: Install graph tools
-        run: conda install -c conda-forge -c ostrokach-forge -c pkgw-forge graph-tool
+        run: bash graph.sh
       
       - name: Install cython
         run: pip install cython
