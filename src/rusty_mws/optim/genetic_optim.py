@@ -4,7 +4,7 @@ import time
 import numpy as np
 from ..algo import segment, extract_segmentation
 from funlib.persistence import open_ds, graphs, Array
-from funlib.evaluate import rand_voi
+# from funlib.evaluate import rand_voi
 
 
 class GeneticOptimizer:
@@ -202,7 +202,7 @@ class GeneticOptimizer:
 
         seg: np.ndarray = np.asarray(seg, dtype=np.uint64)
 
-        score_dict: dict = rand_voi(self.seeds, seg, True)
+        # score_dict: dict = rand_voi(self.seeds, seg, True)
 
         print([score_dict[f"voi_split"], score_dict["voi_merge"]])
         return np.mean(a=[score_dict[f"voi_split"], score_dict["voi_merge"]])
