@@ -5,7 +5,7 @@ import numpy as np
 from ..algo import segment, extract_segmentation
 from funlib.persistence import open_ds, graphs, Array
 
-# from funlib.evaluate import rand_voi
+from funlib.evaluate import rand_voi
 
 
 class GeneticOptimizer():
@@ -50,7 +50,7 @@ class GeneticOptimizer():
 
         self.frags: Array = open_ds(filename=fragments_file, ds_name=fragments_dataset)
         seeds: Array = open_ds(filename=seeds_file, ds_name=seeds_dataset)
-        seeds = self.seeds.to_ndarray(self.frags.roi)
+        seeds = seeds.to_ndarray(self.frags.roi)
         self.seeds: np.ndarray = np.asarray(a=seeds, dtype=np.uint64)
 
         # handle db fetch
