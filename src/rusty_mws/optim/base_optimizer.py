@@ -101,7 +101,7 @@ class OptimizerBase:
         extract_segmentation(
             fragments_file=self.fragments_file, 
             fragments_dataset=self.fragments_dataset, 
-            seg_file=self.sample_name,
+            seg_file=self.seg_file,
             seg_dataset=self.seg_dataset,
         )
 
