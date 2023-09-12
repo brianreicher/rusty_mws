@@ -99,9 +99,17 @@ class GridSearchOptimizer():
             start_time: float = time.time()
             for l_bias in np.arange(self.lr_bias_range[0], self.lr_bias_range[1] + 0.1, 0.1):
                 if eval_method.lower() == "rand_voi":
-                    pass
-                else
-                    n_seg_run: int = self.get_num_segs(temp_edges, temp_adj_scores, temp_lr_scores, a_bias, l_bias)
+                    fitness: np.floating = self.evaluate_weight_biases(
+                    adj_bias=a_bias,
+                    lr_bias=l_bias,
+                    edges=temp_edges,
+                    adj_scores=temp_adj_scores,
+                    lr_scores=temp_lr_scores,
+                    out_dir=self.out_dir,
+                    )
+                    scores.append((a_bias, l_bias, fitness))
+                else:
+                    n_seg_run: int = self.get_num_segs(edges=temp_edges, adj_scores=temp_adj_scores, lr_scores=temp_lr_scores, adj_bias=a_bias, lr_bias=l_bias)
                     if n_seg_run in seg_range:
                         scores.append((a_bias, l_bias, n_seg_run))
             np.savez_compressed(
