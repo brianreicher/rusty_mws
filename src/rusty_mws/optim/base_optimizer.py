@@ -1,9 +1,11 @@
 import random
 import time
+import os
 import numpy as np
 from funlib.persistence import open_ds, graphs, Array
-import mwatershed as mws
-from tqdm import tqdm
+from ..algo import segment, extract_segmentation
+from funlib.evaluate import rand_voi
+
 
 class OptimizerBase:
     def __init__(
@@ -21,11 +23,11 @@ class OptimizerBase:
         db_name: str = "seg",
         merge_function: str = "mwatershed",
     ) -> None:
-        # Set bias ranges
+        # set bias ranges
         self.adj_bias_range: tuple = adj_bias_range
         self.lr_bias_range: tuple = lr_bias_range
 
-        # DB hosting
+        # db hosting
         self.sample_name: str = sample_name
         self.graph_provider = graphs.MongoDbGraphProvider(
             db_name=db_name,
@@ -36,8 +38,9 @@ class OptimizerBase:
             edges_collection=self.sample_name + "_edges_" + merge_function,
             position_attribute=["center_z", "center_y", "center_x"],
         )
+        self.merge_function: str = merge_function
 
-        # Set the seeds and fragments arrays
+        # set the seeds and frags arrays
         self.fragments_file: str = fragments_file
         self.fragments_dataset: str = fragments_dataset
         self.seg_file: str = seg_file
@@ -47,11 +50,11 @@ class OptimizerBase:
 
         self.frags: Array = open_ds(filename=fragments_file, ds_name=fragments_dataset)
         seeds: Array = open_ds(filename=seeds_file, ds_name=seeds_dataset)
-        seeds = self.seeds.to_ndarray(self.frags.roi)
+        seeds = seeds.to_ndarray(self.frags.roi)
         self.seeds: np.ndarray = np.asarray(a=seeds, dtype=np.uint64)
 
-        # Handle DB fetch
-        print("Reading graph from DB ", self.db_name)
+        # handle db fetch
+        print("Reading graph from DB ", db_name)
         start: float = time.time()
 
         print("Got Graph provider")
@@ -59,7 +62,7 @@ class OptimizerBase:
         roi = self.frags.roi
 
         print("Getting graph for roi %s" % roi)
-        graph = self.graph_provider.get_graph(roi)
+        graph = self.graph_provider.get_graph(roi=roi)
 
         print("Read graph in %.3fs" % (time.time() - start))
 
@@ -99,7 +102,8 @@ class OptimizerBase:
         extract_segmentation(
             fragments_file=self.fragments_file, 
             fragments_dataset=self.fragments_dataset, 
-            seg_file=self.sample_name
+            seg_file=self.sample_name,
+            seg_dataset=self.seg_dataset,
         )
 
         seg: Array = open_ds(filename=self.seg_file, ds_name=self.seg_ds)
