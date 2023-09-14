@@ -1,4 +1,6 @@
 import random
+import numpy as np
+
 from .base_optimizer import OptimizerBase
 
 
@@ -33,75 +35,81 @@ class ParticleSwarmOptimizer(OptimizerBase):
             merge_function=merge_function,
         )
 
-    def initialize_population(self, population_size):
-        self.swarm = []
+    def initialize_particles(self, population_size) -> list:
+        particles = []
         for _ in range(population_size):
-            particle = {}
-            for param_name, (min_val, max_val) in self.param_space.items():
-                particle[param_name] = random.uniform(min_val, max_val)
-            particle["velocity"] = {
-                param_name: 0.0 for param_name in self.param_space.keys()
-            }
-            particle["best_position"] = particle.copy()
-            self.swarm.append(particle)
-
-    def update_population(self, offspring):
-        # Replace the entire population with the new offspring
-        self.swarm = offspring
-
-    def update_particle_velocity(self, particle, global_best_position):
-        for param_name in self.param_space.keys():
-            cognitive_component = (
-                self.cognitive_weight
-                * random.random()
-                * (particle["best_position"][param_name] - particle[param_name])
+            position = (
+                random.uniform(self.adj_bias_range[0], self.adj_bias_range[1]),
+                random.uniform(self.lr_bias_range[0], self.lr_bias_range[1]),
             )
-            social_component = (
-                self.social_weight
-                * random.random()
-                * (global_best_position[param_name] - particle[param_name])
+            velocity = (
+                random.uniform(-1, 1),
+                random.uniform(-1, 1),
             )
-            particle["velocity"][param_name] = (
-                self.inertia_weight * particle["velocity"][param_name]
-                + cognitive_component
-                + social_component
+            personal_best_position = position
+            personal_best_score = float("inf")
+            particles.append(
+                {
+                    "position": position,
+                    "velocity": velocity,
+                    "personal_best_position": personal_best_position,
+                    "personal_best_score": personal_best_score,
+                }
             )
+        return particles
 
-    def move_particle(self, particle):
-        for param_name in self.param_space.keys():
-            particle[param_name] += particle["velocity"][param_name]
+    def evaluate_particle(self, particle):
+        adj_bias, lr_bias = particle["position"]
+        score = self.evaluate_weight_biases(
+            adj_bias, lr_bias, self.edges, self.adj_scores, self.lr_scores, self.out_dir
+        )
+        return score
 
-            # Ensure particles stay within the parameter space
-            min_val, max_val = self.param_space[param_name]
-            particle[param_name] = max(min_val, min(particle[param_name], max_val))
+    def optimize(
+        self, num_generations: int, population_size: int
+    ) -> list:
+        particles = self.initialize_particles(population_size)
+        global_best_position = None
+        global_best_score = float("inf")
 
-    def update_swarm(self, global_best_position):
-        for particle in self.swarm:
-            self.update_particle_velocity(particle, global_best_position)
-            self.move_particle(particle)
+        for generation in range(num_generations):
+            print("Generation:", generation)
 
-    def evaluate_fitness(self, particle):
-        """
-        Implement this method to evaluate the fitness of a particle's position.
-        It should return a scalar value, where lower values indicate better fitness.
-        """
-        # Example: You can define a fitness function here based on your optimization problem.
-        # For demonstration purposes, let's assume we want to minimize the sum of squared values of parameters.
-        fitness = sum(val**2 for val in particle.values())
-        return fitness
+            for particle in particles:
+                # Evaluate the particle's position
+                score = self.evaluate_particle(particle)
 
-    def optimize(self, num_generations=100):
-        self.initialize_population(self.swarm_size)
+                # Update personal best
+                if score < particle["personal_best_score"]:
+                    particle["personal_best_score"] = score
+                    particle["personal_best_position"] = particle["position"]
 
-        global_best_position = min(self.swarm, key=lambda x: self.evaluate_fitness(x))
+                # Update global best
+                if score < global_best_score:
+                    global_best_score = score
+                    global_best_position = particle["position"]
 
-        for _ in range(num_generations):
-            self.update_swarm(global_best_position)
+                # Update particle velocity and position
+                inertia_term = np.multiply(
+                    self.inertia_weight, particle["velocity"]
+                )
+                cognitive_term = np.multiply(
+                    self.c1 * random.random(), np.subtract(
+                        particle["personal_best_position"], particle["position"]
+                    )
+                )
+                social_term = np.multiply(
+                    self.c2 * random.random(), np.subtract(
+                        global_best_position, particle["position"]
+                    )
+                )
+                particle["velocity"] = np.add(
+                    inertia_term, np.add(cognitive_term, social_term)
+                )
+                particle["position"] = np.add(
+                    particle["position"], particle["velocity"]
+                )
 
-            for particle in self.swarm:
-                if self.evaluate_fitness(particle) < self.evaluate_fitness(
-                    global_best_position
-                ):
-                    global_best_position = particle.copy()
+            print(f"Iteration {generation}: Best Score = {global_best_score}")
 
         return global_best_position
