@@ -35,18 +35,18 @@ class ParticleSwarmOptimizer(OptimizerBase):
             merge_function=merge_function,
         )
 
-    def initialize_particles(self, population_size) -> list:
-        particles = []
+    def initialize_particles(self, population_size:int=50) -> list:
+        particles: list = []
         for _ in range(population_size):
-            position = (
-                random.uniform(self.adj_bias_range[0], self.adj_bias_range[1]),
-                random.uniform(self.lr_bias_range[0], self.lr_bias_range[1]),
+            position: tuple[float, float] = (
+                random.uniform(a=self.adj_bias_range[0], b=self.adj_bias_range[1]),
+                random.uniform(a=self.lr_bias_range[0], b=self.lr_bias_range[1]),
             )
-            velocity = (
-                random.uniform(-1, 1),
-                random.uniform(-1, 1),
+            velocity: tuple[float, float] = (
+                random.uniform(a=-1, b=1),
+                random.uniform(a=-1, b=1),
             )
-            personal_best_position = position
+            personal_best_position: tuple[float, float] = position
             personal_best_score = float("inf")
             particles.append(
                 {
@@ -58,17 +58,17 @@ class ParticleSwarmOptimizer(OptimizerBase):
             )
         return particles
 
-    def evaluate_particle(self, particle):
+    def evaluate_particle(self, particle) -> np.floating:
         adj_bias, lr_bias = particle["position"]
-        score = self.evaluate_weight_biases(
-            adj_bias, lr_bias, self.edges, self.adj_scores, self.lr_scores, self.out_dir
+        score: np.floating = self.evaluate_weight_biases(
+            adj_bias=adj_bias, lr_bias=lr_bias, edges=self.edges, adj_scores=self.adj_scores, lr_scores=self.lr_scores, out_dir=self.out_dir
         )
         return score
 
     def optimize(
-        self, num_generations: int, population_size: int
+        self, num_generations: int = 50, population_size: int =50
     ) -> list:
-        particles = self.initialize_particles(population_size)
+        particles: list = self.initialize_particles(population_size=population_size)
         global_best_position = None
         global_best_score = float("inf")
 
@@ -77,7 +77,7 @@ class ParticleSwarmOptimizer(OptimizerBase):
 
             for particle in particles:
                 # Evaluate the particle's position
-                score = self.evaluate_particle(particle)
+                score = self.evaluate_particle(particle=particle)
 
                 # Update personal best
                 if score < particle["personal_best_score"]:
@@ -86,7 +86,7 @@ class ParticleSwarmOptimizer(OptimizerBase):
 
                 # Update global best
                 if score < global_best_score:
-                    global_best_score = score
+                    global_best_score: np.floating = score
                     global_best_position = particle["position"]
 
                 # Update particle velocity and position
