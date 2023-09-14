@@ -129,7 +129,11 @@ def skel_correct_segmentation(
             if frag_id == 0:
                 continue
             seg_ids: list = list(np.unique(raster_array[frag_array == frag_id]))
-
+            """
+            if len(seg_ids) == 2:
+                seg_id = [x for x in seg_ids if x != 0][0]
+                seg_array[frag_array_crop == frag_id] = seg_id
+            """
             if seg_ids[0] == 0:
                 seg_ids.pop(0)
             if len(seg_ids) == 1:
