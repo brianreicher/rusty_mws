@@ -10,7 +10,7 @@ from .algo.global_mutex_agglom import *
 from .algo.extract_seg_from_luts import *
 from .algo.skeleton_correct import *
 from .optim.genetic_optim import *
-from rusty_mws.optim import GeneticOptimizer
+from rusty_mws.optim import OptimizerBase, GridSearchOptimizer, GeneticOptimizer, ParticleSwarmOptimizer
 
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -443,6 +443,7 @@ class PostProcessor:
 
     def optimize_pred_segmentation(
         self,
+        algorithm: str = "genetic",
         adj_bias_range: tuple[float, float] = (-2.0, 2.0),
         lr_bias_range: tuple[float, float] = (-2.0, 2.0),
         num_generations: int = 50,
@@ -451,6 +452,9 @@ class PostProcessor:
         """Execute global agglomeration and segment extraction via Mutex Watershed - used to optimize weights.
 
         Args:
+            algorithm (``string``):
+                The optimization algorithm to use to find optimal agglomeration parameters. Options are "genetic", "grid", and "particle".
+
             adj_bias (``float``):
                 Amount to bias adjacent pixel weights when computing segmentation from the stored graph.
 
@@ -467,7 +471,7 @@ class PostProcessor:
             ``list``:
                 A list of the top-5 biases with optimal RAND_VOI scores.
         """
-        gen_optim: GeneticOptimizer = GeneticOptimizer(
+        optim: OptimizerBase = OptimizerBase(
             fragments_file=self.fragments_file,
             fragments_dataset=self.fragments_dataset,
             seg_file=self.seg_file,
@@ -481,7 +485,16 @@ class PostProcessor:
             adj_bias_range=adj_bias_range,
             lr_bias_range=lr_bias_range,
         )
-        best_biases: list = gen_optim.optimize(
+
+        match algorithm:
+            case "genetic":
+                optim: GeneticOptimizer = GeneticOptimizer(optim)
+            case "grid":
+                optim: GridSearchOptimizer = GridSearchOptimizer(optim)
+            case "particle":
+                optim: ParticleSwarmOptimizer = ParticleSwarmOptimizer(optim)
+        
+        best_biases: list = optim.optimize(
             num_generations=num_generations,
             population_size=population_size,
         )
