@@ -62,12 +62,25 @@ pp: rusty_mws.PostProcessor = rusty_mws.PostProcessor(
             affs_file="../data/raw_predictions.zarr",
             affs_dataset="pred_affs_latest",
         )
-pp.run_pred_segmentation_pipeline()
+pp.segment_mws()
 ```
 where:
 * `affs_file` is a path (relative or absolute) to the zarr file containing predicted affinities to generate fragments for.
 * `affs_dataset` is the name of the affinities dataset in the affs_file to read from.
 
+MWS segmentation can also run seeded-MWS if seeds are given to the `PostProcessor` object:
+```python
+import rusty_mws
+
+pp: rusty_mws.PostProcessor = rusty_mws.PostProcessor(
+            affs_file="../data/raw_predictions.zarr",
+            affs_dataset="pred_affs_latest",
+            seeds_file="../data/raw_predictions.zarr",
+            seeds_dataset="training_gt_rasters",
+        )
+pp.segment_mws()
+
+```
 For seeded skeleton-corrected segmentation with Mutex Watershed fragments:
 ```python
 import rusty_mws
@@ -78,7 +91,7 @@ pp: rusty_mws.PostProcessor = rusty_mws.PostProcessor(
             seeds_file="../data/raw_predictions.zarr",
             seeds_dataset="training_gt_rasters",
         )
-pp.run_corrected_segmentation_pipeline()
+pp.segment_seed_correction()
 ```
 where:
 * `affs_file` is a path (relative or absolute) to the zarr file containing predicted affinities to generate fragments for.
