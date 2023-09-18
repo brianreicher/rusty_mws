@@ -259,7 +259,7 @@ class PostProcessor:
         # pipeline vars
         self.n_steps: int = n_steps
 
-    def run_corrected_segmentation_pipeline(
+    def segment_seed_correction(
         self,
     ) -> bool:
         """Full skeleton-corrected MWS segmentation from affinities.
@@ -343,7 +343,7 @@ class PostProcessor:
 
         return success
 
-    def run_pred_segmentation_pipeline(
+    def segment_mws(
         self,
     ) -> bool:
         """Full Mutex Watershed segmentation and agglomeration, using a MongoDB RAG.
@@ -441,7 +441,7 @@ class PostProcessor:
 
         return True
 
-    def optimize_pred_segmentation(
+    def optimize_seg(
         self,
         algorithm: str = "genetic",
         adj_bias_range: tuple[float, float] = (-2.0, 2.0),
