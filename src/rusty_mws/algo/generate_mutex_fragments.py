@@ -269,7 +269,7 @@ def blockwise_generate_mutex_fragments(
         # If you have many affinities of the exact same value the order they are processed
         # in may be fifo, so you can get annoying streaks.
         logger.info("Making random noise")
-        random_noise: float = np.random.randn(*these_affs.data.shape) * 0.001
+        random_noise: float = np.random.randn(*these_affs.data.shape) * 0.01
 
         # add smoothed affs, to solve a similar issue to the random noise. We want to bias
         # towards processing the central regions of objects first.

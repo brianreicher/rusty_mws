@@ -488,11 +488,11 @@ class PostProcessor:
 
         match algorithm:
             case "genetic":
-                optim: GeneticOptimizer = GeneticOptimizer(optim)
+                optim: GeneticOptimizer = GeneticOptimizer(**optim)
             case "grid":
-                optim: GridSearchOptimizer = GridSearchOptimizer(optim)
+                optim: GridSearchOptimizer = GridSearchOptimizer(**optim)
             case "particle":
-                optim: ParticleSwarmOptimizer = ParticleSwarmOptimizer(optim)
+                optim: ParticleSwarmOptimizer = ParticleSwarmOptimizer(**optim)
         
         best_biases: list = optim.optimize(
             num_generations=num_generations,
