@@ -3,3 +3,4 @@ from .global_mutex_agglom import global_mutex_agglomeration, segment
 from .generate_mutex_fragments import blockwise_generate_mutex_fragments
 from .skeleton_correct import skel_correct_segmentation
 from .generate_supervoxel_edges import blockwise_generate_supervoxel_edges
+from .cost_based_global_mutex import blockwise_mws_impl
