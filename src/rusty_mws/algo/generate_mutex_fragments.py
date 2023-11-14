@@ -118,7 +118,9 @@ def blockwise_generate_mutex_fragments(
 
     # new task params
     voxel_size: tuple = affs.voxel_size
-
+    if context is None:
+        context: Coordinate = Coordinate(chunk_shape // 2)
+    
     read_roi_voxels: Roi = Roi((0, 0, 0), chunk_shape * n_chunk_write).grow(
         context, context
     )

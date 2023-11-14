@@ -84,6 +84,8 @@ def blockwise_generate_supervoxel_edges(
 
     # task params
     voxel_size: tuple = affs.voxel_size
+    if context is None:
+        context: Coordinate = Coordinate(chunk_shape // 2)
     read_roi_voxels: Roi = Roi((0, 0, 0), chunk_shape).grow(context, context)
     write_roi_voxels: Roi = Roi((0, 0, 0), chunk_shape)
     total_roi: Roi = affs.roi.grow(context * voxel_size, context * voxel_size)
