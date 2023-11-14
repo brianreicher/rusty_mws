@@ -218,7 +218,7 @@ class PostProcessor:
         if context is not None:
             self.context: Coordinate = context
         else:
-            affs_shape_half: list = [sz//2 for sz in open_ds(affs_file, affs_dataset, mode="r").data.shape[1:]]
+            affs_shape_half: list = [sz//4 for sz in open_ds(affs_file, affs_dataset, mode="r").data.shape[1:]]
             self.context: Coordinate = Coordinate(affs_shape_half)
 
         self.filter_val: float = filter_val
