@@ -218,9 +218,8 @@ class PostProcessor:
         if context is not None:
             self.context: Coordinate = context
         else:
-            self.context: Coordinate = Coordinate(
-                np.max(a=np.abs(neighborhood[:neighborhood_length]), axis=0)
-            )
+            affs_shape_half: list = [sz//2 for sz in open_ds(affs_file, affs_dataset, mode="r").data.shape[1:]]
+            self.context: Coordinate = Coordinate(affs_shape_half)
 
         self.filter_val: float = filter_val
         self.seeded: bool = seeded
@@ -324,7 +323,7 @@ class PostProcessor:
                 neighborhood_length=self.neighborhood_length,
                 mongo_port=self.mongo_port,
                 db_name=self.db_name,
-            )
+           )
 
         success = success & skel_correct_segmentation(
             seeds_file=self.seeds_file,
